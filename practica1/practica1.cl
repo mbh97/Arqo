@@ -41,11 +41,33 @@
 ;;;
 
 ;;; Funcion que calcula el producto escalar recursivamente
-(defun prod-esc-rec (x y) (if (null (rest x)) (* (first x) (first y)) (+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y)))))
+(defun prod-esc-rec (x y) 
+	(if (null (rest x)) 
+	  (* (first x) (first y))     ; null rest: multily the (only) element of the list
+	  (+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y)))))
 
 ;;; Funcion que calcula el modulo de un vector
 (defun modulo-rec (x) (sqrt (prod-esc-rec x x)))
 
 ;;; Funcion sc-rec (x y)
 (defun sc-rec (x y) (if (null (comprueba-arg x y)) nil (/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; sc-conf (x vs conf)
+;;; Devuelve aquellos vectores similares a una categoria
+;;;
+;;; INPUT: x: vector, representado como una lista
+;;; vs: vector de vectores, representado como una lista de listas
+;;; conf: Nivel de confianza
+;;; OUTPUT: Vectores cuya similitud es superior al nivel de confianza, ordenados
+;;;
+
+;;; Funcion que elimina de lista de lista aquellos vectores cuya similitud sea menor al nivel de confianza
+(defun limpia-lista (x vs conf) (remove-if #'(lambda (y) (< (abs (sc-rec x y)) conf)) vs))
+
+
+(defun sc-conf (x vs conf) (sort (limpia-lista x vs conf) #'(lambda(y z) (> (sc-rec x y) (sc-rec x z)))))
+
+;;; Habria que comprobar que todas las listas son positivas, y que las sublistas tienen la misma longitud que la lista categoria
+
 
