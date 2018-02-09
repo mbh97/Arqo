@@ -28,3 +28,24 @@
 
 ;;; Funcion sc-mapcar (x y)
 (defun sc-mapcar (x y) (if (null (comprueba-arg x y)) nil (/ (prod-escalar x y) (* (modulo x) (modulo y)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; sc-rec (x y)
+;;; Calcula la similitud coseno de un vector de forma recursiva
+;;;
+;;; INPUT: x: vector, representado como una lista
+;;; y: vector, representado como una lista
+;;;
+;;; OUTPUT: similitud coseno entre x e y
+;;;
+
+;;; Funcion que calcula el producto escalar recursivamente
+(defun prod-esc-rec (x y) (if (null (rest x)) (* (first x) (first y)) (+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y)))))
+
+;;; Funcion que calcula el modulo de un vector
+(defun modulo-rec (x) (sqrt (prod-esc-rec x x)))
+
+;;; Funcion sc-rec (x y)
+(defun sc-rec (x y) (if (null (comprueba-arg x y)) nil (/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y)))))
+
