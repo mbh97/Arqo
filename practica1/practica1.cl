@@ -72,7 +72,7 @@
 ;;; conf: Nivel de confianza
 ;;; OUTPUT: Vectores cuya similitud con respecto a la categoría es superior al
 ;;; nivel de confianza, ordenados
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Funcion que elimina de lista de lista aquellos vectores cuya similitud sea menor al nivel de confianza
 (defun limpia-lista (cat vs conf) 
@@ -120,6 +120,40 @@
 	(mapcar #'(lambda (x) (append (list (first x) (funcall func (elimina-primero x) (first (sc-conf (elimina-primero x) (elimina-primero-lista texts) 0)))))) cats))
 
 ;; Probar con (sc-classifier '((1 2 3 4) (2 3 4 5)) '((1 3 4 5) (2 2 3 4)) #'sc-rec)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Finds a root of f between the points a and b using bisection.
+;;
+;; If f(a)f(b)>=0 there is no guarantee that there will be a root in the
+;; interval, and the function will return NIL.
+;; INPUT:
+;; f: function of a single real parameter with real values whose root
+;;
+we want to find
+;; a: lower extremum of the interval in which we search for the root
+;; b: b>a upper extremum of the interval in which we search for the root
+;; tol: tolerance for the stopping criterion: if b-a < tol the function
+;;
+returns (a+b)/2 as a solution.
+;; OUTPUT: Root of the function, or NIL if no root is found
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun prod-funcion (f a b)
+	(* (funcall f a) (funcall f b)))
+
+(defun valor-medio (a b)
+	(/ (- b a) 2))
+
+(defun bisect (f a b tol)
+	(if (or (>= (prod-funcion f a b) 0) (> a b))
+		nil
+		(if (<= (- b (valor-medio a b)) tol)
+			(valor-medio a b)
+			(if (<= (prod-funcion f b (valor-medio a b)) 0)
+				(bisect f (valor-medio a b) b tol)
+				(bisect f a (valor-medio a b) tol)))))
+
+;(bisect #'(lambda (x) (sin (* 6.26 x))) 0.1 0.7 0.001)
 
 
 
