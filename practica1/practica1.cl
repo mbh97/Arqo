@@ -121,6 +121,7 @@
 
 ;; Probar con (sc-classifier '((1 2 3 4) (2 3 4 5)) '((1 3 4 5) (2 2 3 4)) #'sc-rec)
 
+;;EJERCICIO 2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Finds a root of f between the points a and b using bisection.
 ;;
@@ -142,18 +143,47 @@ returns (a+b)/2 as a solution.
 	(* (funcall f a) (funcall f b)))
 
 (defun valor-medio (a b)
-	(/ (- b a) 2))
+	(/ (+ b a) 2))
 
 (defun bisect (f a b tol)
 	(if (or (>= (prod-funcion f a b) 0) (> a b))
 		nil
-		(if (<= (- b (valor-medio a b)) tol)
+		(if (<= (- b a) tol)
 			(valor-medio a b)
 			(if (<= (prod-funcion f b (valor-medio a b)) 0)
 				(bisect f (valor-medio a b) b tol)
 				(bisect f a (valor-medio a b) tol)))))
 
-;(bisect #'(lambda (x) (sin (* 6.26 x))) 0.1 0.7 0.001)
+;(bisect #'(lambda (x) (sin (* 6.26 x))) 0.1 0.7 0.001);; no se porq salecomo un numero parecido pero no exactamente el que nos piden los NIL si funcionan
+;;
+;; Finds all the roots that are located between consecutive values of a list
+;; of values
+;;
+;; INPUT:
+;;
+;; f: function of a single real parameter with real values whose root we want to find
+;; lst: ordered list of real values (lst[i] < lst[i+1])
+;; tol: tolerance for the stopping criterion: if b-a < tol the function returns (a+b)/2 as a solution.
+;;
+;; Whenever sgn(f(lst[i])) != sgn(f(lst[i+1])) this function looks for a
+;; root in the corresponding interval.
+;;
+;; OUTPUT:
+;;
+A list o real values containing the roots of the function in the
+;;
+given sub-intervals
+;;
+
+
+
+(defun allroot (f lst tol) 
+	(if(< (prod-funcion f (first lst) (second lst)) 0)
+		(bisect f (first lst) (second lst) tol))
+
+
+
+
 
 
 
