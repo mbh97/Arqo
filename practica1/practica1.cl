@@ -67,44 +67,60 @@
 		nil 
 		(/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; sc-conf (x vs conf)
+;;; sc-conf (cat vs conf)
 ;;; Devuelve aquellos vectores similares a una categoria
-;;;
-;;; INPUT: x: vector, representado como una lista
-;;; vs: vector de vectores, representado como una lista de listas
+;;; INPUT: cat: vector que representa a una categoría, representado como una lista
+;;; vs: vector de vectores
 ;;; conf: Nivel de confianza
-;;; OUTPUT: Vectores cuya similitud es superior al nivel de confianza, ordenados
-;;;
+;;; OUTPUT: Vectores cuya similitud con respecto a la categoría es superior al
+;;; nivel de confianza, ordenados
+(defun sc-conf (cat vs conf) ...)
+
+
 
 ;;; Funcion que elimina de lista de lista aquellos vectores cuya similitud sea menor al nivel de confianza
-(defun limpia-lista (x vs conf) 
-	(remove-if #'(lambda (y) (< (abs (sc-rec x y)) conf)) vs))
+(defun limpia-lista (cat vs conf) 
+	(remove-if #'(lambda (y) (< (abs (sc-rec cat y)) conf)) vs))
 
 
-(defun sc-conf (x vs conf) 
-	(sort (limpia-lista x vs conf) #'(lambda(y z) (> (sc-rec x y) (sc-rec x z)))))
+(defun sc-conf (cat vs conf) 
+	(sort (limpia-lista cat vs conf) #'(lambda(y z) (> (sc-rec cat y) (sc-rec cat z)))))
 
 
 
 ;;Maria
-(defun is-ok (x conf) 
-	(and (>= conf 0) (<= conf 1) (lista-positiva x)))
+(defun is-ok (cat conf) 
+	(and (>= conf 0) (<= conf 1) (lista-positiva cat)))
 
 ;;; limpiar vs de longtudes distintas a x y de listas con elementos negativos
 
-(defun limpia-lista1 (x vs conf n) 
-	(remove-if #'(lambda (y) (or (/= (my-length y) n) (not (lista-positiva y)) (< (abs (sc-rec x y)) conf))) vs))
+(defun limpia-lista1 (cat vs conf n) 
+	(remove-if #'(lambda (y) (or (/= (my-length y) n) (not (lista-positiva y)) (< (abs (sc-rec cat y)) conf))) vs))
 
-(defun sc-conf1 (x vs conf)
-	(if (null (is-ok x conf))
+(defun sc-conf1 (cat vs conf)
+	(if (null (is-ok cat conf))
 		nil
-		(sort (limpia-lista1 x vs conf (my-length x)) #'(lambda(y z) (> (sc-rec x y) (sc-rec x z))))))
+		(sort (limpia-lista1 cat vs conf (my-length cat)) #'(lambda(y z) (> (sc-rec cat y) (sc-rec cat z))))))
 
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; sc-classifier (cats texts func)
+;; Clasifica a los textos en categorías.
+;;;
+;;; INPUT: cats: vector de vectores, representado como una lista de listas
+;;; texts: vector de vectores, representado como una lista de listas
+;;; func: función para evaluar la similitud coseno
+;;; OUTPUT: Pares identificador de categoría con resultado de similitud coseno
+;;;
+(defun sc-classifier (cats texts func) ...)
 
+
+
+;;
 
 
 
