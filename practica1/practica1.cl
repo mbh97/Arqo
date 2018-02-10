@@ -44,12 +44,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sc-rec (x y)
 ;;; Calcula la similitud coseno de un vector de forma recursiva
-;;;
+;;; Se asume que los dos vectores de entrada tienen la misma longitud.
+;;; La semejanza coseno entre dos vectores que son listas vacías o que son
+;;; (0 0...0) es NIL.
 ;;; INPUT: x: vector, representado como una lista
 ;;; y: vector, representado como una lista
-;;;
 ;;; OUTPUT: similitud coseno entre x e y
-;;;
 
 ;;; Funcion que calcula el producto escalar recursivamente
 (defun prod-esc-rec (x y) 
@@ -116,7 +116,47 @@
 ;;; func: función para evaluar la similitud coseno
 ;;; OUTPUT: Pares identificador de categoría con resultado de similitud coseno
 ;;;
-(defun sc-classifier (cats texts func) ...)
+
+
+
+(defun elimina-primero (lista)
+  (rest lista))
+
+(defun elimina-primero-lista (list)
+  (mapcar #'(lambda (y) (elimina-primero y)) list))
+
+(defun sc-classifier (cats texts func) 
+	(mapcar #'(lambda (x) (append (list (first x) (funcall func (elimina-primero x) (first (sc-conf (elimina-primero x) (elimina-primero-lista texts) 0)))))) cats))
+
+;; Probar con (sc-classifier '((1 2 3 4) (2 3 4 5)) '((1 3 4 5) (2 2 3 4)) #'sc-rec)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
