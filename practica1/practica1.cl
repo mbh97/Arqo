@@ -1,4 +1,39 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; sc-rec (x y)
+;;; Calcula la similitud coseno de un vector de forma recursiva
+;;; Se asume que los dos vectores de entrada tienen la misma longitud.
+;;; La semejanza coseno entre dos vectores que son listas vacías o que son
+;;; (0 0...0) es NIL.
+;;; INPUT: x: vector, representado como una lista
+;;; y: vector, representado como una lista
+;;; OUTPUT: similitud coseno entre x e y
+
+(defun no-vacia (lista)
+	(not (eql nil lista)))
+
+(defun no-cero (lista)
+	(not (every #'zerop lista)))
+
+(defun comprueba-arg (x y) 
+	(and (no-vacia x) (no-vacia y) (no-cero x) (no-cero y)))
+
+;;; Funcion que calcula el producto escalar recursivamente
+(defun prod-esc-rec (x y) 
+	(if (null (rest x)) 
+		(* (first x) (first y))     ; null rest: multily the (only) element of the list
+		(+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y)))))
+
+;;; Funcion que calcula el modulo de un vector
+(defun modulo-rec (x) 
+	(sqrt (prod-esc-rec x x)))
+
+;;; Funcion sc-rec (x y)
+(defun sc-rec (x y) 
+	(if (null (comprueba-arg x y)) 
+		nil 
+		(/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sc-mapcar (x y)
 ;;; Calcula la similitud coseno de un vector usando mapcar
 ;;;
@@ -20,20 +55,6 @@
 (defun modulo (x) 
 	(sqrt (prod-escalar x x)))
 
-;;; Funcion que calcula la longitud de una lista
-(defun my-length (x) 
-	(if (null x) 
-		0 
-		(+ 1 (my-length (cdr x)))))
-
-;;; Funcio que comprueba que todos los argumentos de una lista son mayores o iguales a 0
-(defun lista-positiva (x) 
-	(not (some #'minusp x)))
-
-;;; Funcion que comprueba si los argumentos pasados son correctos
-(defun comprueba-arg (x y) 
-	(and (lista-positiva x) (lista-positiva y) (eql (my-length x) (my-length y))))
-
 ;;; Funcion sc-mapcar (x y)
 (defun sc-mapcar (x y) 
 	(if (null (comprueba-arg x y)) 
@@ -41,31 +62,6 @@
 		(/ (prod-escalar x y) (* (modulo x) (modulo y)))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; sc-rec (x y)
-;;; Calcula la similitud coseno de un vector de forma recursiva
-;;; Se asume que los dos vectores de entrada tienen la misma longitud.
-;;; La semejanza coseno entre dos vectores que son listas vacías o que son
-;;; (0 0...0) es NIL.
-;;; INPUT: x: vector, representado como una lista
-;;; y: vector, representado como una lista
-;;; OUTPUT: similitud coseno entre x e y
-
-;;; Funcion que calcula el producto escalar recursivamente
-(defun prod-esc-rec (x y) 
-	(if (null (rest x)) 
-		(* (first x) (first y))     ; null rest: multily the (only) element of the list
-		(+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y)))))
-
-;;; Funcion que calcula el modulo de un vector
-(defun modulo-rec (x) 
-	(sqrt (prod-esc-rec x x)))
-
-;;; Funcion sc-rec (x y)
-(defun sc-rec (x y) 
-	(if (null (comprueba-arg x y)) 
-		nil 
-		(/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,8 +72,6 @@
 ;;; conf: Nivel de confianza
 ;;; OUTPUT: Vectores cuya similitud con respecto a la categoría es superior al
 ;;; nivel de confianza, ordenados
-(defun sc-conf (cat vs conf) ...)
-
 
 
 ;;; Funcion que elimina de lista de lista aquellos vectores cuya similitud sea menor al nivel de confianza
@@ -91,21 +85,19 @@
 
 
 ;;Maria
-(defun is-ok (cat conf) 
-	(and (>= conf 0) (<= conf 1) (lista-positiva cat)))
+(defun is-ok (cat vs conf) 
+	(and (>= conf 0) (<= conf 1)))
+
 
 ;;; limpiar vs de longtudes distintas a x y de listas con elementos negativos
 
 (defun limpia-lista1 (cat vs conf n) 
-	(remove-if #'(lambda (y) (or (/= (my-length y) n) (not (lista-positiva y)) (< (abs (sc-rec cat y)) conf))) vs))
+	(remove-if #'(lambda (y) (or (/= (my-length y) n) (not (es-positiva y)) (< (abs (sc-rec cat y)) conf))) vs))
 
 (defun sc-conf1 (cat vs conf)
 	(if (null (is-ok cat conf))
 		nil
 		(sort (limpia-lista1 cat vs conf (my-length cat)) #'(lambda(y z) (> (sc-rec cat y) (sc-rec cat z))))))
-
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sc-classifier (cats texts func)
@@ -118,7 +110,6 @@
 ;;;
 
 
-
 (defun elimina-primero (lista)
   (rest lista))
 
@@ -129,11 +120,6 @@
 	(mapcar #'(lambda (x) (append (list (first x) (funcall func (elimina-primero x) (first (sc-conf (elimina-primero x) (elimina-primero-lista texts) 0)))))) cats))
 
 ;; Probar con (sc-classifier '((1 2 3 4) (2 3 4 5)) '((1 3 4 5) (2 2 3 4)) #'sc-rec)
-
-
-
-
-
 
 
 
