@@ -88,9 +88,6 @@
 (defun is-ok (cat vs conf) 
 	(and (>= conf 0) (<= conf 1)))
 
-
-;;; limpiar vs de longtudes distintas a x y de listas con elementos negativos
-
 (defun limpia-lista1 (cat vs conf n) 
 	(remove-if #'(lambda (y) (or (/= (my-length y) n) (not (es-positiva y)) (< (abs (sc-rec cat y)) conf))) vs))
 
@@ -208,6 +205,41 @@ given sub-intervals
 		
 		))))))
 		
+
+
+
+;; nuria
+
+(defun allroot (f lst tol)
+	(if (not (null (bisect f (first lst) (second lst) tol)))
+		(append (list (bisect f (first lst) (second lst) tol)))
+		(if ((null (rest lst))
+			list
+		(allroot f (rest lst) tol))))
+
+
+
+
+
+
+
+
+(defun allroot (f lst tol)
+	(if (null (second lst))
+		nil
+		(mapcar #'(lambda (x) (append (list (bisect f (first x) (first (pop lst)) tol)))) (copy-list lst))))
+
+(defun allroot-rec (f lst tol)
+	(if (null (third lst))
+		(bisect f (first lst) (second lst) tol)
+		(append (list (allroot-rec f (rest lst) tol)))))
+
+
+#’(lambda(x) (sin (* 6.28 x)))
+
+
+
+
 
 
 ;; EJERCICIO3
