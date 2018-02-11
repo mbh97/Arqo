@@ -146,9 +146,27 @@ returns (a+b)/2 as a solution.
 	(/ (+ b a) 2))
 
 (defun bisect (f a b tol)
-	(if (or (>= (prod-funcion f a b) 0) (> a b))
+	(if (or (> (prod-funcion f a b) 0) (> a b))
 		nil
-		(if (<= (- b a) tol)
+		(if (= (funcall f b) 0)
+			b
+			(if(= (funcall f a) 0 )
+			a
+			(if (< (- b a) tol)
+			(valor-medio a b)
+			(if (<= (prod-funcion f b (valor-medio a b)) 0)
+				(bisect f (valor-medio a b) b tol)
+				(bisect f a (valor-medio a b) tol)))))))
+				
+				
+				
+				
+				
+				
+(defun bisect (f a b tol)
+	(if (or (> (prod-funcion f a b) 0) (> a b))
+		nil
+		(if (< (- b a) tol)
 			(valor-medio a b)
 			(if (<= (prod-funcion f b (valor-medio a b)) 0)
 				(bisect f (valor-medio a b) b tol)
@@ -178,12 +196,25 @@ given sub-intervals
 
 
 (defun allroot (f lst tol) 
+	(if (null (second list))
+	nil
 	(if(< (prod-funcion f (first lst) (second lst)) 0)
-		(bisect f (first lst) (second lst) tol))
+		(if(= (funcall f (first lst)) 0)
+		first lst
+		(if(=(funcall f (second lst)) 0)
+		second lst
+		(if(< (- (second lst) (first lst)) tol)
+		valor-medio(first lst) (second lst)
+		
+		))))))
+		
 
 
-
-
+;; EJERCICIO3
+(defun combine-elt-lst (elt lst)
+		(if((null lst))
+		nil
+		(mapcar #'(lambda(x) (list elt x)) lst)))
 
 
 
