@@ -257,9 +257,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (time (sc-classifier cats texts #'sc-rec))
-;; --> 
+;; --> 0.000414 sec (99.52 %)
 (time (sc-classifier cats texts #'sc-mapcar))
-;; --> 
+;; --> 0.000296 sec (99.66)
+
+;; Vemos como es mucho mas eficiente aplicar una funcion iterativa que
+;; una recursiva cuando utilizamos vectores pequeños, aunque si aumentamos
+;; el tamaño de estos, actuan de manera contraria
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
@@ -320,10 +324,10 @@
 ;;;				Ejemplos
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;(bisect #’(lambda(x) (sin (* 6.26 x))) 0.1 0.7 0.001)  ;;---> 0.5016602
-;;;(bisect #’(lambda(x) (sin (* 6.26 x))) 0.0 0.7 0.001)  ;;---> NIL
-;;;(bisect #’(lambda(x) (sin (* 6.28 x))) 1.1 1.5 0.001)  ;;---> NIL
-;;;(bisect #’(lambda(x) (sin (* 6.28 x))) 1.1 2.1 0.001)  ;;---> NIL
+;;;(bisect #'(lambda(x) (sin (* 6.26 x))) 0.1 0.7 0.001)  ;;---> 0.5016602
+;;;(bisect #'(lambda(x) (sin (* 6.26 x))) 0.0 0.7 0.001)  ;;---> NIL
+;;;(bisect #'(lambda(x) (sin (* 6.28 x))) 1.1 1.5 0.001)  ;;---> NIL
+;;;(bisect #'(lambda(x) (sin (* 6.28 x))) 1.1 2.1 0.001)  ;;---> NIL
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 ;;                                2.2
@@ -352,9 +356,9 @@
 ;;;                           Ejemplos
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; (allroot #’(lambda(x) (sin (* 6.28 x))) ’(0.25 0.75 1.25 1.75 2.25) 0.0001)
+;;; (allroot #'(lambda(x) (sin (* 6.28 x))) '(0.25 0.75 1.25 1.75 2.25) 0.0001)
 ;;;       ---> (0.50027466 1.0005188 1.5007629 2.001007)
-;;; (allroot #’(lambda(x) (sin (* 6.28 x))) ’(0.25 0.9 0.75 1.25 1.75 2.25) 0.0001)
+;;; (allroot #'(lambda(x) (sin (* 6.28 x))) '(0.25 0.9 0.75 1.25 1.75 2.25) 0.0001)
 ;;;       ---> (0.50027466 1.0005188 1.5007629 2.001007)
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -379,7 +383,7 @@
 ;;; Calcula el tamaño de los partes en que dividimos un intervalo
 ;;; INPUT: a: extremo inferior del intervalo
 ;;;        b: extremo suoerior del intervalo
-;;;		   i: numero de subintervalos en los que hay que dividir (a b)
+;;;        n: numero de subintervalos en los que hay que dividir (a b)
 ;;; OUTPUT: tamaño de los subintervalos
 		
 (defun tam (a b n)
@@ -396,11 +400,6 @@
 
 (defun intervalo (a x tam)
 	(+ a (* x tam)))
-
-
-
-(defun intervalo (a b n)
-	(+ a (tam a b n)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -420,7 +419,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;	allind (f a b N tol)
+;;  allind (f a b N tol)
 ;;  Divides an interval up to a specified length and find all the roots of
 ;;  the function f in the intervals thus obtained.
 ;;  INPUT:
@@ -436,30 +435,16 @@
 		
 (defun allind (f a b N tol)
 	(if (some #'null (lista a b (potencia N) 0))
-	 nil
-	(allroot f (lista a b (potencia N) 0) tol)))
-	
-
-(defun next-tam (N)
-		(if(= N 1)
-		0
-		(log (-(potencia N) 1) 2)))
-	
-	
-	
-	
-(defun allind (f a b N tol)
-	(if(= N 0)
-		(list(bisect f a b tol))
-		(cons(bisect f a (intervalo a b n) tol) (allind f (intervalo a b n) b (next-tam N) tol))))
+		nil
+		(allroot f (lista a b (potencia N) 0) tol)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                      Ejemplos
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; (allind #’(lambda(x) (sin (* 6.28 x))) 0.1 2.25 1 0.0001)
+;;; (allind #'(lambda(x) (sin (* 6.28 x))) 0.1 2.25 1 0.0001)
 ;;;   --->  NIL
-;;; (allind #’(lambda(x) (sin (* 6.28 x))) 0.1 2.25 2 0.0001)
+;;; (allind #'(lambda(x) (sin (* 6.28 x))) 0.1 2.25 2 0.0001)
 ;;;  ---> (0.50027084 1.0005027 1.5007347 2.0010324)
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -479,9 +464,16 @@
 ;;; OUTPUT:lista con el elemento combinado con cada elemento de la lista
 
 (defun combine-elt-lst (elt lst)
-		(if(null lst)
+	(if(null lst) ; condicion de error
 		nil
-		(mapcar #'(lambda(x) (list elt x)) lst)))
+		(mapcar #'(lambda(x) (list elt x)) lst))) ; combina elt con cada elemento de lst
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                      Ejemplos
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; (combine-elt-lst 'a nil) ;; --> NIL
+;;; (combine-elt-lst 'a '(1 2 3)) ;; --> ((A 1) (A 2) (A 3))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                           3.2
@@ -494,9 +486,18 @@
 ;;; OUTPUT: producto cartesiano de las listas
 
 (defun combine-lst-lst (lst1 lst2)
-        (if(or (null lst1) (null lst2))
+        (if(or (null lst1) (null lst2)) ; condicion de error
             nil
-            (mapcan #'(lambda (x) (combine-elt-lst x lst2))lst1)))
+            (mapcan #'(lambda (x) (combine-elt-lst x lst2))lst1))) ; combina las dos listas como producto cartesiano
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                      Ejemplos
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; (combine-lst-lst nil nil) ;; --> nil
+;;; (combine-lst-lst '(a b c) nil) ;; --> nil
+;;; (combine-lst-lst nil '(a b c)) ;; --> nil
+;;; (combine-lst-lst '(a b c) '(1 2)) ;; --> ((A 1) (A2) (B 1) (B 2) (C 1) (C 2))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                           3.3
@@ -514,6 +515,19 @@
         (if (null (rest lstolsts))
             (mapcar #'(lambda (x) (append (list x))) (first lstolsts)); caso base
             (mapcar #'(lambda (x) (cons (first x) (second x))) (combine-lst-lst (first lstolsts) (combine-list-of-lsts (rest lstolsts)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                      Ejemplos
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; (combine-list-of-lsts '(() (+ -) (1 2 3 4))) ;; --> nil
+;;; (combine-list-of-lsts '((a b c) () (1 2 3 4))) ;; --> nil
+;;; (combine-list-of-lsts '((a b c) (1 2 3 4) ())) ;; --> nil
+;;; (combine-list-of-lsts '((1 2 3 4))) ;; --> ((1) (2) (3) (4))
+;;; (combine-list-of-lsts '((a b c) (+ -) (1 2 3 4))) ;; --> 
+((A + 1) (A + 2) (A + 3) (A + 4) (A - 1) (A - 2) (A - 3) (A - 4) (B + 1)
+ (B + 2) (B + 3) (B + 4) (B - 1) (B - 2) (B - 3) (B - 4) (C + 1) (C + 2)
+ (C + 3) (C + 4) (C - 1) (C - 2) (C - 3) (C - 4))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
