@@ -1,3 +1,37 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; 
+;;;                       EJERCICIO 1
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                       SIMILITUD COSENO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Funciones auxiliares utilizadas para sc-rec y sc-mapcar
+;;;
+;;; Funcion que comprueba que un vector no es vacío
+(defun no-vacia (lista)
+    (not (eql nil lista)))
+;;;
+;;; Funcion que comprueba que una vector no es el vector cero
+(defun no-cero (lista)
+    (not (every #'zerop lista)))
+;;;
+;;; Funcion que comprueba que los argumentos que recibe sc-rec son correctos (no son vectores vacíos ni son el vector cero)
+(defun comprueba-arg (x y)  
+    (and (no-vacia x) (no-vacia y) (no-cero x) (no-cero y)))
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Recursiva
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Funcion que calcula el producto escalar de dos vectores de forma recursiva
+(defun prod-esc-rec (x y)  
+    (if (null (rest x))  ; caso base
+        (* (first x) (first y)) ; multiplica los primeros elementos de los vectores x y
+        (+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y))))) ; sumatorio de todas estas multiplicaciones
+;;;
+;;; Función que calcula el módulo de un vector
+(defun modulo-rec (x)  
+    (sqrt (prod-esc-rec x x))) ; raíz cuadrada del producto escalar de x x
+;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sc-rec (x y)
 ;;; Calcula la similitud coseno de un vector de forma recursiva
@@ -7,32 +41,30 @@
 ;;; INPUT: x: vector, representado como una lista
 ;;; y: vector, representado como una lista
 ;;; OUTPUT: similitud coseno entre x e y
+(defun sc-rec (x y)  
+    (if (null (comprueba-arg x y))  ; condición de error
+        nil  
+        (/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y))))) ; aplica prod-esc-rec (x y)/(modulo-rec (x))*(modulo-rec (y))
+;;;
+;;; Ejemplos
+;;; (sc-rec nil '(1 2 3)) → nil
+;;; (sc-rec '(0 0) '(7 3)) → nil
+;;; (sc-rec '(1 2 3) '(4 1 7)) → 0.88823473
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Iterativa
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Funcion que calcula el sumatorio de los numeros de un vector
+(defun sumatorio (x) 
+	(reduce #'+ x)) ; aplica la funcion suma a los elementos de x
 
-(defun no-vacia (lista)
-	(not (eql nil lista)))
-
-(defun no-cero (lista)
-	(not (every #'zerop lista)))
-
-(defun comprueba-arg (x y) 
-	(and (no-vacia x) (no-vacia y) (no-cero x) (no-cero y)))
-
-;;; Funcion que calcula el producto escalar recursivamente
-(defun prod-esc-rec (x y) 
-	(if (null (rest x)) 
-		(* (first x) (first y))     ; null rest: multily the (only) element of the list
-		(+ (* (first x) (first y)) (prod-esc-rec (rest x) (rest y)))))
+;;; Funcion que calcula el producto escalar de dos vectores
+(defun prod-escalar (x y) 
+	(sumatorio (mapcar #'(lambda (z w) (* z w)) x y))) ; sumatorio del producto de los elementos de dos vectores
 
 ;;; Funcion que calcula el modulo de un vector
-(defun modulo-rec (x) 
-	(sqrt (prod-esc-rec x x)))
-
-;;; Funcion sc-rec (x y)
-(defun sc-rec (x y) 
-	(if (null (comprueba-arg x y)) 
-		nil 
-		(/ (prod-esc-rec x y) (* (modulo-rec x) (modulo-rec y)))))
-
+(defun modulo (x) 
+	(sqrt (prod-escalar x x))) ; aplica la raiz cuadrada del producto escalar de x x
+;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sc-mapcar (x y)
 ;;; Calcula la similitud coseno de un vector usando mapcar
@@ -41,28 +73,19 @@
 ;;; y: vector, representado como una lista
 ;;;
 ;;; OUTPUT: similitud coseno entre x e y
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;; Funcion que calcula el sumatorio de una serie de numeros de una lista
-(defun sumatorio (x) 
-	(reduce #'+ x))
-
-;;; Funcion que calcula el producto escalar de dos vectores
-(defun prod-escalar (x y) 
-	(sumatorio (mapcar #'(lambda (z w) (* z w)) x y)))
-
-;;; Funcion que calcula el modulo de un vector
-(defun modulo (x) 
-	(sqrt (prod-escalar x x)))
-
-;;; Funcion sc-mapcar (x y)
+;;;
 (defun sc-mapcar (x y) 
-	(if (null (comprueba-arg x y)) 
+	(if (null (comprueba-arg x y)) ; condicion de error
 		nil 
-		(/ (prod-escalar x y) (* (modulo x) (modulo y)))))
-
-
-
+		(/ (prod-escalar x y) (* (modulo x) (modulo y))))) ; aplica la definion de la similitud coseno
+;;;
+;;; Ejemplos
+;;; (sc-mapcar nil '(1 2 3)) → nil
+;;; (sc-mapcar '(0 0) '(7 3)) → nil
+;;; (sc-mapcar '(1 2 3) '(4 1 7)) → 0.88823473
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                         SC-CONF 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sc-conf (cat vs conf)
