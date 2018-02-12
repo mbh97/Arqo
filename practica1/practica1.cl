@@ -247,8 +247,68 @@ given sub-intervals
 			(list(bisect f (first lst) (second lst) tol))
 			(cons (bisect f (first lst) (second lst) tol) (allroot f (rest lst) tol)))
 		(allroot f (rest lst) tol)))
+		
+		
+;;ej 2.3
+;;  Divides an interval up to a specified length and find all the roots of
+;;  the function f in the intervals thus obtained.
+;;
+;;  INPUT:
+;;
+;;  f: function of a single real parameter with real values whose root
+;;     we want to find
+;;  a: lower extremum of the interval in which we search for the root
+;;  b: b>a upper extremum of the interval in which we search for the root
+;;  N: Exponent of the number of intervals in which [a,b] is to be divided:
+;;     [a,b] is divided into 2^N intervals
+;;  tol: tolerance for the stopping criterion: if b-a < tol the function
+;;       returns (a+b)/2 as a solution.
+6
+;;
+;;  The interval (a,b) is divided in intervals (x[i], x[i+i]) with
+;;  x[i]= a + i*dlt; a root is sought in each interval, and all the roots
+;;  thus found are assembled into a list that is returned.
+;;
+;;  OUTPUT: List with all the found roots.
+;;
+;;  Hint:
+;;  One might find a way to use allroot to implement this function. This is
+;;  possible, of course, but there is a simple way of doing it recursively
+;;  without using allroot.
+;;
+(defun allind (f a b N tol) ...)
 
 
+
+
+;;eleva un numero a la n.
+
+(defun potencia (n)
+	(if (= n 0) 
+		1
+		(* 2 (potencia (- n 1)))))
+		
+		
+(defun tam (a b i)
+			(/(- b a) i))
+
+(loop for a from 10 to 20
+   do (print a)
+)
+
+(defun intervalo (a x tam)
+	(+ a (* x tam)))
+
+
+(defun lista (a b pot n) 
+	(if (equal n pot)
+		(list(intervalo a n (tam a b pot)))
+		(cons (intervalo a n (tam a b pot)) (lista a b pot (+ n 1)))))
+		
+(defun allind (f a b N tol)
+	(allroot f (lista a b (potencia N) 0) tol))
+		
+		
 ;; EJERCICIO3
 (defun combine-elt-lst (elt lst)
 		(if(null lst)
