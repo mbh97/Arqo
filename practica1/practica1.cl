@@ -239,22 +239,39 @@ given sub-intervals
 
 
 
+;;;;BUENOOOO
 
+(defun allroot (f lst tol)
+	(if (not (null (bisect f (first lst) (second lst) tol)))
+		(if (null (third lst))
+			(list(bisect f (first lst) (second lst) tol))
+			(cons (bisect f (first lst) (second lst) tol) (allroot f (rest lst) tol)))
+		(allroot f (rest lst) tol)))
 
 
 ;; EJERCICIO3
 (defun combine-elt-lst (elt lst)
-		(if((null lst))
+		(if(null lst)
 		nil
 		(mapcar #'(lambda(x) (list elt x)) lst)))
 
 
 
 
+(defun combine-lst-lst (lst1 lst2)
+        (if(or (null lst1) (null lst2))
+            nil
+            (mapcan #'(lambda (x) (combine-elt-lst x lst2))lst1)))
 
 
 
-
+(defun combine-list-of-lsts (lstolsts) 
+    (if (some #'null lstolsts)
+        nil
+        (if (null (rest lstolsts))
+            (mapcar #'(lambda (x) (append (list x))) (first lstolsts)); caso base
+            (mapcar #'(lambda (x) (cons (first x) (second x))) (combine-lst-lst (first lstolsts) (combine-list-of-lsts (rest lstolsts)))))))
+	
 
 
 
