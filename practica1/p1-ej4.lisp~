@@ -41,8 +41,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun positive-literal-p (x)
 	(and (atom x)
-	     (not (truth-value-p x)
-	     	  (connector-p x))))
+	     (truth-value-p x)
+	     (connector-p x)))
 
 ;; EJEMPLOS:
 (positive-literal-p 'p)
