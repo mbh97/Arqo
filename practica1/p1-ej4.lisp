@@ -41,8 +41,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun positive-literal-p (x)
 	(and (atom x)
-	     (not (truth-value-p x)
-	     	  (connector-p x))))
+	     (not (truth-value-p x))
+	     (not (connector-p x))))
 
 ;; EJEMPLOS:
 (positive-literal-p 'p)
@@ -68,8 +68,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun negative-literal-p (x)
 	(and (listp x)
-	     (unary-connector-p (first x)
-	     (positive-literal-p (rest x)))))
+	     (unary-connector-p (first x))
+	     (positive-literal-p (first (rest x)))))
 
 ;; EJEMPLOS:
 (negative-literal-p '(¬ p))        ; T
@@ -162,7 +162,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun wff-infix-p (x)
   ;;
-  ;; 4.1.4 Completa el codigo
+  ;; 4.1.4 Esta funcion tenemos codigo de santini. asique entenderla bien bien para poder hacer el resto
   ;;
   ) 
 
@@ -1088,4 +1088,3 @@
  (logical-consequence-RES-SAT-p 
   '(((¬ p) => q) ^ (p <=> ((¬ a) ^ b)) ^ ( (¬ p) => (r  ^ (¬ q)))) 
   '(¬ q)))
-
