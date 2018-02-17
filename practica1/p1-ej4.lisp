@@ -249,12 +249,31 @@
 ;; RECIBE   : FBF en formato infijo 
 ;; EVALUA A : FBF en formato prefijo 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun infix-to-prefix (wff)
-  ;;
-  ;; 4.1.5 Completa el codigo
-  ;;
-  )
 
+;;; funcion auxiliar que crea un prefijo con el conector n-ary
+(defun pre-n-ary-connector (x)
+	(if (literal-p x)
+		x
+		(if (n-ary-connector-p (first x)) ; si es un conector, entonces no lo añadimos a la lista
+			(pre-n-ary-connector (rest x))
+			(cons (first x) (pre-n-ary-connector (rest x))))))
+
+
+(defun infix-to-prefix (wff)
+	(unless (null wff) ; si es null devuelve nil
+		(when (wff-infix-p wff) ;mientras sea un infijo
+    			(if (literal-p wff) ; si es literal lo devuelvo
+				wff
+			(let ((un-ele (first wff))
+			       (connector (first (rest wff))))) 
+			(cond 
+				((unary-conector-p un-ele)
+					(list (infix-to-prefix un-ele) (infix-to-prefix (third wff))))
+				((binary-connector-p connector)
+					(list connector (infix-to-prefix un-ele) (infix-to-prefix (third wff))))
+				((n-ary-connector-p connector) 
+					(cons (infix-to-prefix un-ele) (infix-to-prefix (third wff)))))) ;; esto esta mal pero no se como hacerlo, el resto esta bien
+)))))))))
 ;;
 ;; EJEMPLOS
 ;;
@@ -308,11 +327,15 @@
 ;; RECIBE   : FBF en formato prefijo 
 ;; EVALUA A : T si FBF es una clausula, NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun all-literal (wff)
+	(if (null wff)
+		t
+		(and (literal-p (first wff)) (all-literal (rest wff)))))
+
 (defun clause-p (wff)
-  ;;
-  ;; 4.1.6 Completa el codigo
-  ;;
-  )
+	(unless (null wff)
+		(and t (eql (first wff) +or+) (all-literal (rest wff)))))
+
 
 ;;
 ;; EJEMPLOS:
@@ -337,13 +360,18 @@
 ;;
 ;; RECIBE   : FFB en formato prefijo 
 ;; EVALUA A : T si FBF esta en FNC con conectores, 
-;;            NIL en caso contrario. 
+;;   ()         NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun all-clause (wff)
+	(if (null wff)
+		t
+		(if (listp (first wff))
+			(and (clause-p (first wff)) (all-clause (rest wff)))
+			nil)))
+
 (defun cnf-p (wff)
-  ;;
-  ;; 4.1.7 Completa el codigo
-  ;;
-  )
+	(unless (null wff)
+		(and t (eql (first wff) +and+) (all-clause (rest wff)))))
 
 ;;
 ;; EJEMPLOS:
