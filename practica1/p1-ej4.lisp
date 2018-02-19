@@ -160,11 +160,37 @@
 ;; EVALUA A : T si x esta en formato prefijo, 
 ;;            NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; Verifica si una expresion de la forma op <wff> ... op <wff>
+
 (defun wff-infix-p (x)
-  ;;
-  ;; 4.1.4 Esta funcion tenemos codigo de santini. asique entenderla bien bien para poder hacer el resto
-  ;;
-  ) 
+  (unless (null x)
+    (or (literal-p x)
+        (and (listp x)
+             (let ((op1 (car x))
+                   (exp1 (cadr x))
+                   (list_exp2 (cddr x)))
+               (cond 
+                ((unary-connector-p op1)
+                 (and (null list_exp2)
+                      (wff-infix-p exp1)))
+                ((n-ary-connector-p op1)
+                 (null (rest x)))
+                ((binary-connector-p exp1)
+                 (and (wff-infix-p op1)
+                      (null (cdr list_exp2))
+                      (wff-infix-p (car list_exp2))))
+                ((n-ary-connector-p exp1)
+                 (and (wff-infix-p op1)
+                      (nop-verify exp1 (cdr x))))
+                 (t NIL)))))))
+
+(defun nop-verify (op exp)
+  (or (null exp)
+      (and (equal op (car exp))
+           (wff-infix-p (cadr exp))
+           (nop-verify op (cddr exp)))))
 
 ;;
 ;; EJEMPLOS:
@@ -264,16 +290,19 @@
 		(when (wff-infix-p wff) ;mientras sea un infijo
     			(if (literal-p wff) ; si es literal lo devuelvo
 				wff
-			(let ((un-ele (first wff))
-			       (connector (first (rest wff))))) 
-			(cond 
-				((unary-conector-p un-ele)
-					(list (infix-to-prefix un-ele) (infix-to-prefix (third wff))))
-				((binary-connector-p connector)
-					(list connector (infix-to-prefix un-ele) (infix-to-prefix (third wff))))
-				((n-ary-connector-p connector) 
-					(cons (infix-to-prefix un-ele) (infix-to-prefix (third wff)))))) ;; esto esta mal pero no se como hacerlo, el resto esta bien
-)))))))))
+				(let ((un-ele (first wff))
+			       	      (connector (first (rest wff))))
+					(cond 
+						((unary-connector-p un-ele)
+							(list un-ele (infix-to-prefix (rest wff))))
+						((binary-connector-p connector)
+							(list connector (infix-to-prefix un-ele) (infix-to-prefix (rest (rest wff)))))
+						((n-ary-connector-p connector) 
+							(list connector (infix-to-prefix un-ele) (infix-to-prefix (rest (rest wff)))))))))))
+
+
+;; falla los unarios y los n-ary-connector :(
+
 ;;
 ;; EJEMPLOS
 ;;
