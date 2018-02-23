@@ -470,10 +470,16 @@
 ;;            sin el connector =>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun eliminate-conditional (wff)  
-  ;;
-  ;; 4.2.2 Completa el codigo
-  ;;
-  )       
+	(if (or (null wff) (literal-p wff))
+   		wff
+    (let ((connector (first wff)))
+    	(if (eq connector +cond+)
+        	(let ((wff1 (eliminate-conditional (second wff)))
+                 (wff2 (eliminate-conditional (third  wff))))
+            (list +or+ 
+                  (list +not+ wff1) wff2))
+        (cons connector 
+              (mapcar #'eliminate-conditional (rest wff))))))) 
 
 ;;
 ;; EJEMPLOS:
@@ -493,17 +499,29 @@
 ;;            la negacion  aparece unicamente en literales 
 ;;            negativos.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		
+//SIGO SIN TENERLA, PERO ES QUE YO CREO Q ESTA BIEN, MAÑANA MIRA PROBANDO TROZO A TROZO
 (defun reduce-scope-of-negation (wff)
-  ;;
-  ;; 4.2.3 Completa el codigo
-  ;;
-  )
+	(if (or (null wff) (literal-p wff))
+   		(negar-literal wff)
+   		(if (eq +not+ (first wff))
+   			(reduce-scope-of-negation (first (rest wff)))
+			(if (all-clause wff)
+		   		(cons (exchange-and-or (first wff)) (reduce-scope-of-negation (rest wff)))
+		   		(let ((literal (first wff)))
+		   			(cons (negar-literal literal) (mapcar #'reduce-scope-of-negation (rest wff)))
+		   			)))))
 
 (defun exchange-and-or (connector)
   (cond
    ((eq connector +and+) +or+)    
    ((eq connector +or+) +and+)
    (t connector)))
+   
+(defun negar-literal (x)
+	(if (positive-literal-p x)
+		(list +not+ x)
+		(second x)))
 
 ;;
 ;;  EJEMPLOS:
