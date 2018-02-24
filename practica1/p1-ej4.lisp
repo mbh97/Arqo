@@ -500,13 +500,12 @@
 ;;            negativos.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		
-//SIGO SIN TENERLA, PERO ES QUE YO CREO Q ESTA BIEN, MAÑANA MIRA PROBANDO TROZO A TROZO
 (defun reduce-scope-of-negation (wff)
 	(if (or (null wff) (literal-p wff))
    		(negar-literal wff)
    		(if (eq +not+ (first wff))
    			(reduce-scope-of-negation (first (rest wff)))
-			(if (all-clause wff)
+			(if (n-ary-connector-p (first wff))
 		   		(cons (exchange-and-or (first wff)) (reduce-scope-of-negation (rest wff)))
 		   		(let ((literal (first wff)))
 		   			(cons (negar-literal literal) (mapcar #'reduce-scope-of-negation (rest wff)))
