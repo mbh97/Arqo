@@ -488,18 +488,7 @@
 ;; EVALUA A : FBF equivalente en formato prefijo en la que 
 ;;            la negacion  aparece unicamente en literales 
 ;;            negativos.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;(defun reduce-scope-of-negation (wff)
-;	(if (or (null wff) (literal-p wff))
-;  		(negar-literal wff)
-;   		(if (eq +not+ (first wff))
-;   			(reduce-scope-of-negation (first (rest wff)))
-;			(if (n-ary-connector-p (first wff))
-;		   		(cons (exchange-and-or (first wff)) (reduce-scope-of-negation (rest wff)))
-;		   		(let ((literal (first wff)))
-;		   			(cons (negar-literal literal) (mapcar #'reduce-scope-of-negation (rest wff)))
-;		   			)))))
-		   			
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	   			
 		   		
 (defun reduce-scope-of-negation (wff)
    (if (or (null wff) (literal-p wff)) ; Caso base: nil o literal, en ese caso,
@@ -883,6 +872,11 @@
 ;;            que no contienen el literal lambda ni ~lambda   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun extract-neutral-clauses (lambda cnf)
+	(if (null (rest (extract-neutral-clauses-aux lambda cnf)))
+		(first (extract-neutral-clauses-aux lambda cnf))
+		 (extract-neutral-clauses-aux lambda cnf)))
+
+(defun extract-neutral-clauses (lambda cnf)
 	(if (not (null cnf))
 		(if (contiene-lambda-neutral lambda (first cnf))
 			(extract-neutral-clauses lambda (rest cnf))
@@ -1005,11 +999,31 @@
 ;;                          sobre K1 y K2, con los literales repetidos 
 ;;                          eliminados
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun resolve-on (lambda K1 K2) 
-  ;;
-  ;; 4.4.4 Completa el codigo
-  ;;
-  )
+;; NECESARIA AHORA LA TIENE BLANCA
+(defun eliminate-repeated-literals (k)
+	(cond ((null k) nil)
+		  ((literal-p k) k)
+		  ((member (car k) (rest k) :test #'equal) (eliminate-repeated-literals (rest k)))
+		  (t(cons (car k) (eliminate-repeated-literals (rest k))))))
+
+
+(defun resolve-on (lambda K1 K2)
+	(if (and (contiene-lambda lambda K1) (contiene-lambda (negar-literal lambda) K2))
+		(resolve-on-aux lambda K1 K2)
+		(if (and (contiene-lambda (negar-literal lambda) K1) (contiene-lambda lambda K2))
+			(resolve-on-aux lambda K2 K1)
+			nil)))
+
+
+(defun resolve-on-aux (lambda K1 K2)
+	(if (and (null (rest K1)) (null (rest K2)))
+		(list NIL)
+		(eliminate-repeated-literals (append (eliminar-elemento lambda K1) (eliminar-elemento (negar-literal lambda) K2)))))
+	
+
+(defun eliminar-elemento (ele lst)
+	(remove-if #'(lambda (y) (equal ele y)) lst))
+
 
 ;;
 ;;  EJEMPLOS:
@@ -1045,11 +1059,36 @@
 ;;            
 ;; EVALUA A : RES_lambda(cnf) con las clauses repetidas eliminadas
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; DE BLANCA
+(defun limpiar-c (k)
+	(cond ((null k) nil)
+	      (t(mapcar #'(lambda(x) (eliminate-repeated-literals x)) k))))
+
+(defun equals(l1 l2)
+	(if (= (length (intersection l1 l2 :test 'equal)) (length l1) (length l2))
+		T
+		NIL))
+
+(defun erc-aux(list)
+	(cond ((null list) nil)
+			((every #'null (mapcar #'(lambda(x) (equals (first list) x))(rest list))) (cons(first list)(erc-aux (rest list))) )
+			(t(erc-aux (rest list)))))
+
+(defun eliminate-repeated-clauses (cnf) 
+	(erc-aux(limpiar-c cnf)))
+	
+;;;;;;;;;;;;;;;;;;;;
+
+	
 (defun build-RES (lambda cnf)
-  ;;
-  ;; 4.4.5 Completa el codigo
-  ;;
-)
+	(eliminate-repeated-clauses (append (extract-neutral-clauses lambda cnf) (RES lambda (extract-positive-clauses lambda cnf) (extract-negative-clauses lambda cnf)))))
+	
+(defun RES-aux (lambda x lst)
+	(mapcar #'(lambda (y) (resolve-on lambda x y)) lst))
+	
+(defun RES (lambda lst1 lst2)
+	(mapcan #'(lambda(x) (RES-aux lambda x lst2)) lst1))
+		
 
 ;;
 ;;  EJEMPLOS:
@@ -1062,8 +1101,9 @@
 (build-RES 'p '(NIL))
 ;; (NIL)
 
-(build-RES 'p '((p) ((~ p))))
+(build-RES 'p '((p) ((~ p)))) 
 ;; (NIL)
+;; ((NIL))
 
 (build-RES 'q '((p q) ((~ p) q) (a b q) (p (~ q)) ((~ p) (~ q))))
 ;; ((P) ((~ P) P) ((~ P)) (B A P) (B A (~ P)))
@@ -1080,12 +1120,29 @@
 ;; EVALUA A :	T  si cnf es SAT
 ;;                NIL  si cnf es UNSAT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun  RES-SAT-p (cnf) 
-  ;;
-  ;; 4.5 Completa el codigo
-  ;;
-  )
 
+;;; NO FUNCIOOOOOOOOOOOOOONA
+(defun RES-SAT-p (cnf) 
+  (simplificar (get-lambdas cnf) cnf))
+  		
+(defun simplificar (lambdas cnf)
+	(if (or (lista-vacia cnf) (lista-vacia (first cnf)))
+		nil ; UNSAT
+		(if (null (build-RES (first lambdas) cnf))
+			t
+			(simplificar (rest lambdas) (build-RES (first lambdas) cnf)))))
+
+(defun get-lambdas (cnf)
+	(eliminate-repeated-literals (mapcan #'(lambda (x) (eliminar-negative x)) cnf)))
+		
+(defun eliminar-negative (lst)
+	(if (negative-literal-p lst) 
+		nil
+		(remove-if #'(lambda (y) (negative-literal-p y)) lst)))
+(defun lista-vacia (cnf)
+	(if (null cnf)
+		nil
+		(null (first cnf))))
 ;;
 ;;  EJEMPLOS:
 ;;
@@ -1120,10 +1177,14 @@
 ;;            NIL en caso de que no sea consecuencia logica.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun logical-consequence-RES-SAT-p (wff w)
-  ;;
-  ;; 4.6 Completa el codigo
-  ;;
-  )
+	(let ((cnfWFF (wff-infix-to-cnf wff)) ;; transformamos wff a cnf
+		  (cnfnotW (wff-infix-to-cnf (cons +not+ w)))) ;; transformamos ¬w a cnf
+		  (if (RES-SAT-p cnfWFF) ; si wff es SAT
+		  	(RES-SAT-p (clauses-union cnfWFF cnfnotW))
+		  	nil))) ;; wff no es SAT
+ 
+(defun clauses-union (wff w)
+	(eliminate-repeated-clauses (append wff w)))
 
 ;;
 ;;  EJEMPLOS:
