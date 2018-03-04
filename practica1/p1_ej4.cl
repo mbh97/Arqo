@@ -1120,17 +1120,21 @@
 ;; EVALUA A :	T  si cnf es SAT
 ;;                NIL  si cnf es UNSAT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+(defun rec-RES-SAT (lambdas cnf)
+  (cond 
+    ((null cnf) T) ; SAT
+    ((unsat cnf) NIL) ;; UNSAT
+    ((null lambdas) T)  ;; No se puede seguir resolviendo, SAT
+    (t (rec-RES-SAT (rest lambdas) (build-RES (first lambdas) cnf)))))
 
-;;; NO FUNCIOOOOOOOOOOOOOONA
-(defun RES-SAT-p (cnf) 
-  (simplificar (get-lambdas cnf) cnf))
-  		
-(defun simplificar (lambdas cnf)
-	(if (or (lista-vacia cnf) (lista-vacia (first cnf)))
-		nil ; UNSAT
-		(if (null (build-RES (first lambdas) cnf))
-			t
-			(simplificar (rest lambdas) (build-RES (first lambdas) cnf)))))
+(defun  RES-SAT-p (cnf) 
+  (rec-RES-SAT (get-lambdas cnf) cnf))
+  
+(defun unsat (cnf)
+  (if (or (contiene-lambda nil cnf) (contiene-lambda (list nil) cnf)) ;; añado lista vacia por un ejemplo que no funciona
+    t
+	nil))
 
 (defun get-lambdas (cnf)
 	(eliminate-repeated-literals (mapcan #'(lambda (x) (eliminar-negative x)) cnf)))
@@ -1139,10 +1143,7 @@
 	(if (negative-literal-p lst) 
 		nil
 		(remove-if #'(lambda (y) (negative-literal-p y)) lst)))
-(defun lista-vacia (cnf)
-	(if (null cnf)
-		nil
-		(null (first cnf))))
+
 ;;
 ;;  EJEMPLOS:
 ;;
@@ -1177,15 +1178,12 @@
 ;;            NIL en caso de que no sea consecuencia logica.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun logical-consequence-RES-SAT-p (wff w)
-	(let ((cnfWFF (wff-infix-to-cnf wff)) ;; transformamos wff a cnf
-		  (cnfnotW (wff-infix-to-cnf (cons +not+ w)))) ;; transformamos ¬w a cnf
-		  (if (RES-SAT-p cnfWFF) ; si wff es SAT
-		  	(RES-SAT-p (clauses-union cnfWFF cnfnotW))
-		  	nil))) ;; wff no es SAT
- 
-(defun clauses-union (wff w)
-	(eliminate-repeated-clauses (append wff w)))
-
+	(if (null (RES-ASAT-p (union ;; hacemos resolucion de la union
+				(simplify-cnf (wff-infix-to-cnf wff)) ;; simplficamos la transformacion de wff a cnf
+				(simplify-cnf (wff-infix-to-cnf (list +not+ w))) ;; simplficamos la transformacion de la ¬w a cnf
+				:test 'equals)))
+		nil
+		T))
 ;;
 ;;  EJEMPLOS:
 ;;
