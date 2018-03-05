@@ -39,6 +39,7 @@
 ;; EVALUA A : T si la expresion es un literal positivo, 
 ;;            NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun positive-literal-p (x)
 	(and (atom x)
 	     (not (truth-value-p x))
@@ -701,12 +702,13 @@
 ;; RECIBE   : K - clausula (lista de literales, disyuncion implicita)
 ;; EVALUA A : clausula equivalente sin literales repetidos 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+			
 (defun eliminate-repeated-literals (k)
-  ;;
-  ;; 4.3.1 Completa el codigo
-  ;;
-  )
+	(cond ((null k) nil)
+		  ((literal-p k) k)
+		  ((member (first k) (rest k) :test #'equal) (eliminate-repeated-literals (rest k))) ;; si el primer elemento esta repetido, eliminar repetidos del resto de la lista 
+		  (t(cons (first k) (eliminate-repeated-literals (rest k)))))) ;; si no esta, creamos una lista con el primero y el resultado de eliminar los repetidos del resto
+			
 
 ;;
 ;; EJEMPLO:
@@ -715,18 +717,54 @@
 ;;;   (B (~ A) (~ C) C A)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EJERCICIO 4.3.2
+;; 					EJERCICIO 4.3.2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;					AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;elimina los elementos repetidos de las clausulas de una cnf
+;;
+;;RECIBE   : k- FBF en FNC (lista de clausulas, conjuncion implicita)
+;:EVALUA A : FNC equivalente sin elementos repetidos en sus clausulas
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun limpiar-c (k)
+	(cond ((null k) nil)
+	      (t(mapcar #'(lambda(x) (eliminate-repeated-literals x)) k))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si dos clausulas son iguales
+;;
+;;RECIBE   : l1 y l2 listas de literales (clausulas)
+;;EVALUA A  : T si ambas son iguales, NIL si son diferentes
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun equals(l1 l2)
+	(if (= (length (intersection l1 l2 :test 'equal)) (length l1) (length l2))
+		T
+		NIL))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si una a una si las clausulas son iguales que alguna de las clausulas siguientes de la lista. 
+;;
+;;RECIBE  : una lista de clausulas
+;;EVALUA A: FNC equivalente sin clausulas repetidas
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun erc-aux(list)
+	(cond ((null list) nil)
+			((every #'null (mapcar #'(lambda(x) (equals (first list) x))(rest list)))
+			 (cons(first list)(erc-aux (rest list)))) ;; si la primera clausula es distinta de todas las demas se añade a la lista que devolvera la funcion
+			(t(erc-aux (rest list))))) ;; si la primera clausula si que esta repetida, evaluamos la funcion a partir de ella. 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;           FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; eliminacion de clausulas repetidas en una FNC 
 ;; 
 ;; RECIBE   : cnf - FBF en FNC (lista de clausulas, conjuncion implicita)
 ;; EVALUA A : FNC equivalente sin clausulas repetidas 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun eliminate-repeated-clauses (cnf) 
-  ;;
-  ;; 4.3.2 Completa el codigo
-  ;;
-  )
+	(erc-aux(limpiar-c cnf))) ;; llamamos a la funcion que elimina las clausulas repetidas sobre una lista de clausulas sin elementos repetidos
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; EJEMPLO:
 ;;
@@ -734,19 +772,40 @@
 ;;; ((C (~ A)) (C (~ A) B) (A B))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EJERCICIO 4.3.3
+;; 				EJERCICIO 4.3.3
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;             AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si un elemento subsume a una clausula
+;;
+;;RECIBE  : e-elemento, L clausula
+;;EVALUA A : e si el elemento subsume a la clausula, NIL si no la subsume
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun subsume-el (e L)
+	(if (member e L :test #'equal) e NIL))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si cada elemento de la primera clausula, subsume a la segunda. 
+;;
+;;RECIBE   : K1, K2  clausulas
+;;EVALUA A : lista con elementos y nil en funcion de si subsumen o no
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+(defun subsume-tot (K1 K2)
+	(mapcar #'(lambda(x) (subsume-el x K2))K1))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;				FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicado que determina si una clausula subsume otra
 ;;
 ;; RECIBE   : K1, K2 clausulas
 ;; EVALUA a : (list K1) si K1 subsume a K2
 ;;            NIL en caso contrario
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun subsume (K1 K2)
-  ;;
-  ;; 4.3.3 Completa el codigo
-  ;;
-  )
-  
+	(if (some #'null (subsume-tot K1 K2)) ;; si algun elemento de la primera clausula no esta en la segunda, no subsume.
+		nil
+		(list K1))) ;; si todos estan, si subsume
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;
 ;;  EJEMPLOS:
 ;;
@@ -769,16 +828,55 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJERCICIO 4.3.4
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;						AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si la primera clausula es subsumida por la segunda
+;;
+;;RECIBE     : x y clausulas
+;; EVALUA A  : NIL si son iguales o x no es subsumida por y, x si x es subsumida por y
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun is-subsumed (x y)
+	(cond ((equals y x) NIL)
+		  ((subsume y x) x )))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;agrupa en un lista si una clausula de L es subsumido por la clausula e
+;;
+;;RECIBE    : e clausula que subsume
+;;EVALUA A  : una lista cuyos elementos son el resultado de aplicar is-subsumed de cada elemento de L con e
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun aux1 (e L)
+	(mapcar #'(lambda(x) (is-subsumed x e))L))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;agrupa en una lista las listas generadas en aux1 para cada elemento de list
+;;
+;;RECIBE    : list -lista de clausulas 
+;;EVALUA A  : lista cuyos elementos son los elementos de las listas de aux1 para cada elemento de list
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun aux2 (list)
+	(mapcan #'(lambda(x) (aux1 x list)) list))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;elimina los elementos de la lista de aux2 que son nil, de manera que nos quedamos con clausulas no vacias
+;;
+;;RECIBE   : cnf lista de clausulas
+;;EVALUA A : lista de las clausulas subsumidas de cnf
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun esc-aux (cnf) 
+  (remove-if #'null (aux2 cnf)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;			FUNCION PRINCIPAL	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; eliminacion de clausulas subsumidas en una FNC 
 ;; 
 ;; RECIBE   : cnf (FBF en FNC)
 ;; EVALUA A : FBF en FNC equivalente a cnf sin clausulas subsumidas 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun eliminate-subsumed-clauses (cnf) 
-  ;;
-  ;; 4.3.4 Completa el codigo
-  ;;
-)
+	(set-difference cnf (esc-aux cnf)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;
 ;;  EJEMPLOS:
@@ -794,20 +892,31 @@
 ;;; ((A (~ C) B) ((~ A)) (B C))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EJERCICIO 4.3.5
-;; Predicado que determina si una clausula es tautologia
+;; 				EJERCICIO 4.3.5
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;				AUXILIAR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina para cada elemento de la lista, esta tambien su contrario
+;;
+;;RECIBE    : una lista (clausula)
+;;EVALUA A  : una lista de T y Nil 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun both (L)
+	(mapcar #'(lambda(x) (member (negar-literal x) L :test #'equal))L))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Predicado que determina si una clausula es tautologia
 ;;
 ;; RECIBE   : K (clausula)
 ;; EVALUA a : T si K es tautologia
 ;;            NIL en caso contrario
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun tautology-p (K) 
-  ;;
-  ;; 4.3.5 Completa el codigo
-  ;;
-  )
+	(if(every #'null (both K)) 
+		NIL  ;; si para ningun elemento, esta tambien su contrario, entonces no es tatutologia
+		T))  ;; si para algun elemento esta tambien su contrario, es tautologia
 
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  EJEMPLOS:
 ;;
 (tautology-p '((~ B) A C (~ A) D)) ;;; T 
@@ -821,12 +930,9 @@
 ;; EVALUA A : FBF en FNC equivalente a cnf sin tautologias 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun eliminate-tautologies (cnf) 
-  ;;
-  ;; 4.3.6 Completa el codigo
-  ;;
-  )
+ 	(remove-if #'(lambda(x) (tautology-p x)) cnf))
 
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  EJEMPLOS:
 ;;
 (eliminate-tautologies 
@@ -840,7 +946,7 @@
 ;; EJERCICIO 4.3.7
 ;; simplifica FBF en FNC 
 ;;        * elimina literales repetidos en cada una de las clausulas 
-;;        * elimina clausulas repetidas
+;;        * elimina clausulas repetidas // esta hace lo de arriba tbn
 ;;        * elimina tautologias
 ;;        * elimina clausulass subsumidas
 ;;  
@@ -850,12 +956,9 @@
 ;;            y sin clausulas subsumidas
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun simplify-cnf (cnf) 
-  ;;
-  ;; 4.3.7 Completa el codigo
-  ;;
-  )
+ 	(eliminate-subsumed-clauses (eliminate-tautologies (eliminate-repeated-clauses cnf))))
 
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  EJEMPLOS:
 ;;
 (simplify-cnf '((a a) (b) (a) ((~ b)) ((~ b)) (a b c a)  (s s d) (b b c a b)))
