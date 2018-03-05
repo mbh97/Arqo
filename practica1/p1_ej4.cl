@@ -576,9 +576,9 @@
 
 (defun cnf (wff)
   (cond
-   ((cnf-p wff) wff)
-   ((literal-p wff)
+    ((literal-p wff)
     (list +and+ (list +or+ wff)))
+   ((cnf-p wff) wff)
    ((let ((connector (first wff))) 
       (cond
        ((equal +and+ connector) 
@@ -1281,12 +1281,12 @@
 ;;            NIL en caso de que no sea consecuencia logica.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun logical-consequence-RES-SAT-p (wff w)
-	(if (null (RES-ASAT-p (union ;; hacemos resolucion de la union
+	(if (null (RES-SAT-p (union ;; hacemos resolucion de la union
 				(simplify-cnf (wff-infix-to-cnf wff)) ;; simplficamos la transformacion de wff a cnf
 				(simplify-cnf (wff-infix-to-cnf (list +not+ w))) ;; simplficamos la transformacion de la ¬w a cnf
 				:test 'equals)))
-		nil
-		T))
+		T
+		nil))
 ;;
 ;;  EJEMPLOS:
 ;;
@@ -1347,6 +1347,6 @@
   'q) ;; NIL
  (logical-consequence-RES-SAT-p 
   '(((~ p) => q) ^ (p <=> ((~ a) ^ b)) ^ ( (~ p) => (r  ^ (~ q)))) 
-  '(~ q)))
+  '(~ q))) ;; NIL
 
 
