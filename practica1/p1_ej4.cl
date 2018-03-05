@@ -274,28 +274,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; funcion auxiliar que crea un prefijo con el conector n-ary
-(defun pre-n-ary-connector (x)
-	(if (literal-p x)
-		x
-		(if (n-ary-connector-p (first x)) ; si es un conector, entonces no lo añadimos a la lista
-			(pre-n-ary-connector (rest x))
-			(cons (first x) (pre-n-ary-connector (rest x))))))
-
-
 (defun infix-to-prefix (wff)
-	(unless (null wff) ; si es null devuelve nil
-		(when (wff-infix-p wff) ;mientras sea un infijo
-    			(if (literal-p wff) ; si es literal lo devuelvo
-				wff
-				(let ((un-ele (first wff))
-			       	      (connector (first (rest wff))))
-					(cond 
-						((unary-connector-p un-ele)
-							(list un-ele (infix-to-prefix (rest wff))))
-						((binary-connector-p connector)
-							(list connector (infix-to-prefix un-ele) (infix-to-prefix (rest (rest wff)))))
-						((n-ary-connector-p connector) 
-							(list connector (infix-to-prefix un-ele) (infix-to-prefix (rest (rest wff)))))))))))
+  (when (wff-infix-p wff)
+    (if (literal-p wff) ;; si es literal, ya es infijo
+        wff
+      (let ((connector (second wff)) ; declaramos variables
+            (element (first wff)))
+        (cond
+         ((n-ary-connector-p element) ; Cubrimos el caso de conjuncion o disyuncion vacias,
+          wff)                          ; por convencion se acepta como fbf en formato prefijo
+         ((unary-connector-p element) ; Si el operador es un-ario, siempre va delante del elemento
+          (list element (infix-to-prefix (car (cdr wff)))))
+         ((binary-connector-p connector) ; caso conector binario
+          (list connector
+                (infix-to-prefix element)
+                (infix-to-prefix (third wff))))
+         ((n-ary-connector-p connector) 
+          (cons connector 
+                    (mapcan #'(lambda(x) (list (infix-to-prefix x))) ; Pasamos a prefijo todas las expresiones
+                      (remove-if #'n-ary-connector-p wff )))) ; Eliminamos los operadores n-ary  de la lista
+         (t NIL)))))) ;; no deberia llegar a este paso nunca cddr wff
 
 ;;
 ;; EJEMPLOS
@@ -491,24 +489,27 @@
 ;; EVALUA A : FBF equivalente en formato prefijo en la que 
 ;;            la negacion  aparece unicamente en literales 
 ;;            negativos.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	   			
+		   		
 (defun reduce-scope-of-negation (wff)
-	(if (or (null wff) (literal-p wff))
-   		(negar-literal wff)
-   		(if (eq +not+ (first wff))
-   			(reduce-scope-of-negation (first (rest wff)))
-			(if (n-ary-connector-p (first wff))
-		   		(cons (exchange-and-or (first wff)) (reduce-scope-of-negation (rest wff)))
-		   		(let ((literal (first wff)))
-		   			(cons (negar-literal literal) (mapcar #'reduce-scope-of-negation (rest wff)))
-		   			)))))
+   (if (or (null wff) (literal-p wff)) ; Caso base: nil o literal, en ese caso,
+       wff                             ; devolvemos la fbf tal cual
+    (let ((connector (first wff)))
+      (if (eq connector +not+) ; Comprobamos si el operador es el not
+          (if (eq (first (first (rest wff))) +not+) ; en caso de doble negacion se deja igual
+              (reduce-scope-of-negation (cadr (cadr wff)))
+            (cons (exchange-and-or (first (first (rest wff)))) ; Aplicamos la ley de De Morgan
+                   (mapcar #'(lambda(x) (reduce-scope-of-negation (list +not+ x))) (rest (second wff)))))
+        (cons connector (mapcar #'reduce-scope-of-negation (rest wff))))))) ; Si el operador no es not, analizamos el resto de la fbf
+                   
 
 (defun exchange-and-or (connector)
   (cond
    ((eq connector +and+) +or+)    
    ((eq connector +or+) +and+)
    (t connector)))
-   
+
+; Al final no la he usado, util mas adelante   
 (defun negar-literal (x)
 	(if (positive-literal-p x)
 		(list +not+ x)
@@ -575,10 +576,10 @@
 
 (defun cnf (wff)
   (cond
-  	((literal-p wff) ; HE CAMBIADO DE ORDEN LAS PRIMERAS CONDICIONES
+   ((cnf-p wff) wff)
+   ((literal-p wff)
     (list +and+ (list +or+ wff)))
-    ((cnf-p wff) wff)
-   	((let ((connector (first wff))) 
+   ((let ((connector (first wff))) 
       (cond
        ((equal +and+ connector) 
         (cons +and+ (simplify +and+ (mapcar #'cnf (rest wff)))))
@@ -676,36 +677,23 @@
 ;; EVALUA A : FBF en FNC (con conectores ^, v eliminados)
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun wff-infix-to-cnf (wff)
-	(if (of (null wff) (literal-p wff) (connector-p wff))
-		wff
-		(if (listp (rest wff))
-			(eliminate-connectors (cnf (mapcar ())))
-		(eliminate-connectors (cnf (mapcar ())))
-		)
-)
-(defun dejar-bonita (wff)
-	(if (or (n-ary-connector-p (first wff)) (unary-connector-p (first wff)) (literal-p (first wff)))
-		(if (listp (second wff)) 
-			(list (first wff) (mapcar #'dejar-bonita (first (rest wff))))
-			(cons (first wff) (mapcar #'dejar-bonita (rest wff))))
-		(eliminate-biconditional wff)))
-		
-		
-
-'(^ (v p (<=> a (^ b (¬ c) d))))
-
-(mapcar #'eliminate-biconditional '(v p (=> a (^ b (¬ c) d)))
+	(eliminate-connectors (cnf (reduce-scope-of-negation (eliminate-conditional (eliminate-biconditional (infix-to-prefix wff)))))))
 
 
 ;;
 ;; EJEMPLOS:
 ;; 
 (wff-infix-to-cnf 'a)
+;; ((A))
 (wff-infix-to-cnf '(~ a))
+;; (((~ A)))
 (wff-infix-to-cnf  '( (~ p) v q v (~ r) v (~ s)))
+;; (((~ P) Q (~ R) (~ S)))
 (wff-infix-to-cnf  '((p v (a => (b ^ (~ c) ^ d))) ^ ((p <=> (~ q)) ^ p) ^ e))
 ;; ((P (~ A) B) (P (~ A) (~ C)) (P (~ A) D) ((~ P) (~ Q)) (Q P) (P) (E))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJERCICIO 4.3.1
@@ -986,13 +974,29 @@
 ;; EVALUA A : cnf_lambda^(0) subconjunto de clausulas de cnf  
 ;;            que no contienen el literal lambda ni ~lambda   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun extract-neutral-clauses (lambda cnf) 
-  ;;
-  ;; 4.4.1 Completa el codigo
-  ;;
-  )
+(defun extract-neutral-clauses (lambda cnf)
+	(if (null (rest (extract-neutral-clauses-aux lambda cnf)))
+		(first (extract-neutral-clauses-aux lambda cnf))
+		 (extract-neutral-clauses-aux lambda cnf)))
 
-;;
+(defun extract-neutral-clauses (lambda cnf)
+	(if (not (null cnf))
+		(if (contiene-lambda-neutral lambda (first cnf))
+			(extract-neutral-clauses lambda (rest cnf))
+			(cons (first cnf) (extract-neutral-clauses lambda (rest cnf))))
+		nil))
+
+(defun contiene-lambda (l lst)
+	(if (not (equal (member l lst :test #'equal) NIL))
+		t
+		nil))
+		
+(defun contiene-lambda-neutral (l lst)
+	(if (or (contiene-lambda l lst) (contiene-lambda (negar-literal l) lst))
+		t
+		nil))		
+
+	
 ;;  EJEMPLOS:
 ;;
 (extract-neutral-clauses 'p
@@ -1024,9 +1028,11 @@
 ;;            que contienen el literal lambda  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun extract-positive-clauses (lambda cnf) 
-  ;;
-  ;; 4.4.2 Completa el codigo
-  ;;
+  (if (not (null cnf))
+		(if (contiene-lambda lambda (first cnf))
+			(cons (first cnf) (extract-positive-clauses lambda (rest cnf)))
+			(extract-positive-clauses lambda (rest cnf)))
+		nil)
   )
 
 ;;
@@ -1059,9 +1065,11 @@
 ;;            que contienen el literal ~lambda  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun extract-negative-clauses (lambda cnf) 
-  ;;
-  ;; 4.4.3 Completa el codigo
-  ;;
+  (if (not (null cnf))
+		(if (contiene-lambda (negar-literal lambda) (first cnf))
+			(cons (first cnf) (extract-negative-clauses lambda (rest cnf)))
+			(extract-negative-clauses lambda (rest cnf)))
+		nil)
   )
 
 ;;
@@ -1094,11 +1102,31 @@
 ;;                          sobre K1 y K2, con los literales repetidos 
 ;;                          eliminados
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun resolve-on (lambda K1 K2) 
-  ;;
-  ;; 4.4.4 Completa el codigo
-  ;;
-  )
+;; NECESARIA AHORA LA TIENE BLANCA
+(defun eliminate-repeated-literals (k)
+	(cond ((null k) nil)
+		  ((literal-p k) k)
+		  ((member (car k) (rest k) :test #'equal) (eliminate-repeated-literals (rest k)))
+		  (t(cons (car k) (eliminate-repeated-literals (rest k))))))
+
+
+(defun resolve-on (lambda K1 K2)
+	(if (and (contiene-lambda lambda K1) (contiene-lambda (negar-literal lambda) K2))
+		(resolve-on-aux lambda K1 K2)
+		(if (and (contiene-lambda (negar-literal lambda) K1) (contiene-lambda lambda K2))
+			(resolve-on-aux lambda K2 K1)
+			nil)))
+
+
+(defun resolve-on-aux (lambda K1 K2)
+	(if (and (null (rest K1)) (null (rest K2)))
+		(list NIL)
+		(eliminate-repeated-literals (append (eliminar-elemento lambda K1) (eliminar-elemento (negar-literal lambda) K2)))))
+	
+
+(defun eliminar-elemento (ele lst)
+	(remove-if #'(lambda (y) (equal ele y)) lst))
+
 
 ;;
 ;;  EJEMPLOS:
@@ -1134,11 +1162,36 @@
 ;;            
 ;; EVALUA A : RES_lambda(cnf) con las clauses repetidas eliminadas
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; DE BLANCA
+(defun limpiar-c (k)
+	(cond ((null k) nil)
+	      (t(mapcar #'(lambda(x) (eliminate-repeated-literals x)) k))))
+
+(defun equals(l1 l2)
+	(if (= (length (intersection l1 l2 :test 'equal)) (length l1) (length l2))
+		T
+		NIL))
+
+(defun erc-aux(list)
+	(cond ((null list) nil)
+			((every #'null (mapcar #'(lambda(x) (equals (first list) x))(rest list))) (cons(first list)(erc-aux (rest list))) )
+			(t(erc-aux (rest list)))))
+
+(defun eliminate-repeated-clauses (cnf) 
+	(erc-aux(limpiar-c cnf)))
+	
+;;;;;;;;;;;;;;;;;;;;
+
+	
 (defun build-RES (lambda cnf)
-  ;;
-  ;; 4.4.5 Completa el codigo
-  ;;
-)
+	(eliminate-repeated-clauses (append (extract-neutral-clauses lambda cnf) (RES lambda (extract-positive-clauses lambda cnf) (extract-negative-clauses lambda cnf)))))
+	
+(defun RES-aux (lambda x lst)
+	(mapcar #'(lambda (y) (resolve-on lambda x y)) lst))
+	
+(defun RES (lambda lst1 lst2)
+	(mapcan #'(lambda(x) (RES-aux lambda x lst2)) lst1))
+		
 
 ;;
 ;;  EJEMPLOS:
@@ -1151,8 +1204,9 @@
 (build-RES 'p '(NIL))
 ;; (NIL)
 
-(build-RES 'p '((p) ((~ p))))
+(build-RES 'p '((p) ((~ p)))) 
 ;; (NIL)
+;; ((NIL))
 
 (build-RES 'q '((p q) ((~ p) q) (a b q) (p (~ q)) ((~ p) (~ q))))
 ;; ((P) ((~ P) P) ((~ P)) (B A P) (B A (~ P)))
@@ -1169,11 +1223,29 @@
 ;; EVALUA A :	T  si cnf es SAT
 ;;                NIL  si cnf es UNSAT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+(defun rec-RES-SAT (lambdas cnf)
+  (cond 
+    ((null cnf) T) ; SAT
+    ((unsat cnf) NIL) ;; UNSAT
+    ((null lambdas) T)  ;; No se puede seguir resolviendo, SAT
+    (t (rec-RES-SAT (rest lambdas) (build-RES (first lambdas) cnf)))))
+
 (defun  RES-SAT-p (cnf) 
-  ;;
-  ;; 4.5 Completa el codigo
-  ;;
-  )
+  (rec-RES-SAT (get-lambdas cnf) cnf))
+  
+(defun unsat (cnf)
+  (if (or (contiene-lambda nil cnf) (contiene-lambda (list nil) cnf)) ;; añado lista vacia por un ejemplo que no funciona
+    t
+	nil))
+
+(defun get-lambdas (cnf)
+	(eliminate-repeated-literals (mapcan #'(lambda (x) (eliminar-negative x)) cnf)))
+		
+(defun eliminar-negative (lst)
+	(if (negative-literal-p lst) 
+		nil
+		(remove-if #'(lambda (y) (negative-literal-p y)) lst)))
 
 ;;
 ;;  EJEMPLOS:
@@ -1209,11 +1281,12 @@
 ;;            NIL en caso de que no sea consecuencia logica.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun logical-consequence-RES-SAT-p (wff w)
-  ;;
-  ;; 4.6 Completa el codigo
-  ;;
-  )
-
+	(if (null (RES-ASAT-p (union ;; hacemos resolucion de la union
+				(simplify-cnf (wff-infix-to-cnf wff)) ;; simplficamos la transformacion de wff a cnf
+				(simplify-cnf (wff-infix-to-cnf (list +not+ w))) ;; simplficamos la transformacion de la ¬w a cnf
+				:test 'equals)))
+		nil
+		T))
 ;;
 ;;  EJEMPLOS:
 ;;
