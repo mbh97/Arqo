@@ -9,21 +9,49 @@
 (defconstant +and+    '^)
 (defconstant +or+     'v)
 (defconstant +not+    '~)
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Funcion que determina si un elemento tiene valor de verdad
+;;
+;;RECIBE x elemento
+;;EVALUA A : t si es verdad o la lista vacia, nil en caso contrario
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun truth-value-p (x) 
   (or (eql x T) (eql x NIL)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si un elemnto es un conector unario (not)
+;;
+;;RECIBE : elemento x
+;;EVALUA A : T si es el simbolo definido como not, NIL en caso contrario
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun unary-connector-p (x) 
   (eql x +not+))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si un elemnto es un conector binario(cond, bicond)
+;;
+;;RECIBE : elemento x
+;;EVALUA A : T si es el simbolo definido como cond o bicond, NIL en caso contrario
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun binary-connector-p (x) 
   (or (eql x +bicond+) 
       (eql x +cond+)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si un elemnto es un conector n-ario(and, or)
+;;
+;;RECIBE : elemento x
+;;EVALUA A : T si es el simbolo definido como and o or, NIL en caso contrario
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun n-ary-connector-p (x) 
   (or (eql x +and+) 
       (eql x +or+)))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si un elemnto es un conector de cualquier tipo
+;;
+;;RECIBE : elemento x
+;;EVALUA A : T si es un conector, NIL en caso contrario
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun connector-p (x) 
   (or (unary-connector-p  x)
       (binary-connector-p x)
@@ -40,7 +68,7 @@
 ;;            NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun positive-literal-p (x)
+(defun positive-literal-p (x)  ;;un literal es positivo si es un atomo, no tiene valor de verdad y no es conector
 	(and (atom x)
 	     (not (truth-value-p x))
 	     (not (connector-p x))))
@@ -68,7 +96,7 @@
 ;;            NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun negative-literal-p (x)
-	(and (listp x)
+	(and (listp x)					;;sabemos que es un literal negativo si es una lista cuyo primer elemento es un conector unario y el resto un literal positivo
 	     (unary-connector-p (first x))
 	     (positive-literal-p (first (rest x)))))
 
@@ -92,7 +120,7 @@
 ;; Predicado para determinar si una expresion es un literal  
 ;;
 ;; RECIBE   : expresion x  
-;; EVALUA A : T si la expresion es un literal, 
+;; EVALUA A : T si la expresion es un literal (positivo o negativo), 
 ;;            NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun literal-p (x)
@@ -162,19 +190,19 @@
 ;;            NIL en caso contrario. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun wff-infix-p (x)
-  (unless (null x)
-    (or (literal-p x)
-        (and (listp x)
+  (unless (null x)			;; NIL no es FBF en formato prefijo (por convencion)
+    (or (literal-p x)		;; Un literal es FBF en formato prefijo
+        (and (listp x)		;; En caso de que no sea un literal debe ser una lista
              (let ((op1 (car x))
                    (exp1 (cadr x))
                    (list_exp2 (cddr x)))
                (cond 
-                ((unary-connector-p op1)
-                 (and (null list_exp2)
-                      (wff-infix-p exp1)))
-                ((n-ary-connector-p op1)
-                 (null (rest x)))
-                ((binary-connector-p exp1)
+                ((unary-connector-p op1)	;; Si el primer elemento es un connector unario
+                 (and (null list_exp2)		;; deberia tener la estructura (FBF <conector>)
+                      (wff-infix-p exp1)))	
+                ((n-ary-connector-p op1)	
+                 (null (rest x)))			
+                ((binary-connector-p exp1)	;; Si el primer elemento es un conector binario
                  (and (wff-infix-p op1)
                       (null (cdr list_exp2))
                       (wff-infix-p (car list_exp2))))
@@ -225,19 +253,19 @@
 ;; EVALUA A : FBF en formato infijo
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun prefix-to-infix (wff)
-  (when (wff-prefix-p wff)
-    (if (literal-p wff)
+  (when (wff-prefix-p wff)		;;solo si wff esta en formati prefijo
+    (if (literal-p wff)			;; si es un literal, lo devuelve
         wff
       (let ((connector      (first wff))
             (elements-wff (rest wff)))
         (cond
-         ((unary-connector-p connector) 
+         ((unary-connector-p connector) 	;; si es un conector unario, repite el proceso a partir del segundo elemento		
           (list connector (prefix-to-infix (second wff))))
-         ((binary-connector-p connector) 
+         ((binary-connector-p connector) 	;; si es binario devuelve una lista con la expresion del segundo, el conector y la expresion del tercero en infijo
           (list (prefix-to-infix (second wff))
                 connector
                 (prefix-to-infix (third wff))))
-         ((n-ary-connector-p connector) 
+         ((n-ary-connector-p connector) ;; si es enario
           (cond 
            ((null elements-wff)        ;;; conjuncion o disyuncion vacias. 
             wff)                       ;;; por convencion, se acepta como fbf en formato infijo
@@ -343,19 +371,27 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJERCICIO 4.1.6
-;; Predicado para determinar si una FBF es una clausula  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;			FUNCION AUXILIAR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;determina si todos los elementos de una lista son literales
 ;;
-;; RECIBE   : FBF en formato prefijo 
-;; EVALUA A : T si FBF es una clausula, NIL en caso contrario. 
+;;RECIBE : wff fbf pormato prefijo sin el primer elemento
+;;EVALUA A : T si es una lista vacia o son todos literales, nil en caso contrario
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun all-literal (wff)
 	(if (null wff)
 		t
-		(and (literal-p (first wff)) (all-literal (rest wff)))))
-
+		(and (literal-p (first wff)) (all-literal (rest wff)))))   ;;de manera recursiva determina si son todos literales con un and de todos los elementos
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Predicado para determinar si una FBF es una clausula  
+;;
+;; RECIBE   : FBF en formato prefijo 
+;; EVALUA A : T si FBF es una clausula, NIL en caso contrario. 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun clause-p (wff)
 	(unless (null wff)
-		(and t (eql (first wff) +or+) (all-literal (rest wff)))))
+		(and t (eql (first wff) +or+) (all-literal (rest wff)))))   ;;para que sea clausula el pimer elemento debe ser un or y el resto literales
 
 ;;
 ;; EJEMPLOS:
@@ -376,24 +412,34 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJERCICIO 1.7
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;				FUNCION AUXILIAR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; determina si todos los elementos son clausulas
+;;
+;;RECIBE   : una ffb en formato prefijo sin el primer elemento
+;;EVALUA A : T si es una lista vacia o todos sus elementos son clausulas, NIL en caso contrario
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun all-clause (wff)
+	(if (null wff)
+		t
+		(if (listp (first wff))
+			(and (clause-p (first wff)) (all-clause (rest wff))) ;;determina de manera recursiva si todos los elementos son clausulas usando un and de todos ellos
+			nil)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;			FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Predicado para determinar si una FBF esta en FNC  
 ;;
 ;; RECIBE   : FFB en formato prefijo 
 ;; EVALUA A : T si FBF esta en FNC con conectores, 
 ;;            NIL en caso contrario. 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun all-clause (wff)
-	(if (null wff)
-		t
-		(if (listp (first wff))
-			(and (clause-p (first wff)) (all-clause (rest wff)))
-			nil)))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun cnf-p (wff)
 	(unless (null wff)
-		(and t (eql (first wff) +and+) (all-clause (rest wff)))))
+		(and t (eql (first wff) +and+) (all-clause (rest wff))))) ;; el primer elemento debe ser un and y el resto clausulas
 
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJEMPLOS:
 ;;
 (cnf-p '(^ (v a  b c) (v q r) (v (~ r) s) (v a b))) ; T
@@ -525,23 +571,25 @@
 ;;;  (V (~ P) Q (^ (~ R) (~ S) A))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EJERCICIO 4.2.4: Comente el codigo adjunto 
-;;
-;; Dada una FBF, que no contiene los conectores <=>, => en la 
-;; que la negacion aparece unicamente en literales negativos
-;; evalua a una FNC equivalente en FNC con conectores ^, v  
-;;
-;; RECIBE   : FBF en formato prefijo sin conector <=>, =>, 
-;;            en la que la negacion aparece unicamente 
-;;            en literales negativos
-;; EVALUA A : FBF equivalente en formato prefijo FNC 
-;;            con conectores ^, v
+;; EJERCICIO 4.2.4 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;FUNCIONES  AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;combina cada elemento de una lista con otro creando una lista de pares
+;;
+;;RECIBE   : elt -elemento a combinar, lst lista que se combina
+;;EVALUA A : devuelve una lista de pares de elt y cada elemento de lst
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun combine-elt-lst (elt lst)
   (if (null lst)
       (list (list elt))
     (mapcar #'(lambda (x) (cons elt x)) lst)))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun exchange-NF (nf)
   (if (or (null nf) (literal-p nf)) 
       nf
@@ -550,7 +598,12 @@
             (mapcar #'(lambda (x)
                           (cons connector x))
                 (exchange-NF-aux (rest nf)))))))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun exchange-NF-aux (nf)
   (if (null nf) 
       NIL
@@ -560,7 +613,12 @@
                    x 
                    (exchange-NF-aux (rest nf)))) 
         (if (literal-p lst) (list lst) (rest lst))))))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun simplify (connector lst-wffs )
   (if (literal-p lst-wffs)
       lst-wffs                    
@@ -573,7 +631,19 @@
                     (rest x))) 
                  (t (list x))))               
       lst-wffs)))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;			FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Dada una FBF, que no contiene los conectores <=>, => en la 
+;; que la negacion aparece unicamente en literales negativos
+;; evalua a una FNC equivalente en FNC con conectores ^, v  
+;;
+;; RECIBE   : FBF en formato prefijo sin conector <=>, =>, 
+;;            en la que la negacion aparece unicamente 
+;;            en literales negativos
+;; EVALUA A : FBF equivalente en formato prefijo FNC 
+;;            con conectores ^, v
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun cnf (wff)
   (cond
    ((cnf-p wff) wff)
