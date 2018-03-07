@@ -666,13 +666,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun cnf (wff)
   (cond
-    ((literal-p wff)
-    (list +and+ (list +or+ wff)))
-   ((cnf-p wff) wff)
+    ((literal-p wff)  ;; si es un literal 
+    (list +and+ (list +or+ wff))) ;;(^(v wff))
+   ((cnf-p wff) wff) 
    ((let ((connector (first wff))) 
       (cond
-       ((equal +and+ connector) 
-        (cons +and+ (simplify +and+ (mapcar #'cnf (rest wff)))))
+       ((equal +and+ connector) ;; primer elemento es and
+        (cons +and+ (simplify +and+ (mapcar #'cnf (rest wff)))))  ;;(and + )
        ((equal +or+ connector) 
         (cnf (exchange-NF (cons +or+ (simplify +or+ (rest wff)))))))))))
 
