@@ -199,20 +199,20 @@
                    (list_exp2 (cddr x)))
                (cond 
                 ((unary-connector-p op1)	;; Si el primer elemento es un connector unario
-                 (and (null list_exp2)		;; deberia tener la estructura (FBF <conector>)
-                      (wff-infix-p exp1)))	
+                 (and (null list_exp2)	
+                      (wff-infix-p exp1)))	;; evaluamos el segundo elemento
                 ((n-ary-connector-p op1)	
                  (null (rest x)))			
                 ((binary-connector-p exp1)	;; Si el primer elemento es un conector binario
-                 (and (wff-infix-p op1)
+                 (and (wff-infix-p op1)     ;; si el primer elemento esta en formato infijo
                       (null (cdr list_exp2))
-                      (wff-infix-p (car list_exp2))))
-                ((n-ary-connector-p exp1)
+                      (wff-infix-p (car list_exp2))));;evaluamos el tercer elemento
+                ((n-ary-connector-p exp1) ;; Si el primer elemento es un conector enario
                  (and (wff-infix-p op1)
                       (nop-verify exp1 (cdr x))))
                  (t NIL)))))))
 
-(defun nop-verify (op exp)
+(defun nop-verify (op exp)       
   (or (null exp)
       (and (equal op (car exp))
            (wff-infix-p (cadr exp))
@@ -605,10 +605,10 @@
       (list (list elt))
     (mapcar #'(lambda (x) (cons elt x)) lst)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;cambia los and por or en uma cnf
 ;;
-;;
-;;
-;;
+;;RECIBE  : nf- lista de elementos
+;;EVALUA A: una lista igual pero con los elementos and y oir cambiados segun corresponda
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun exchange-NF (nf)
   (if (or (null nf) (literal-p nf)) 
@@ -619,10 +619,10 @@
                           (cons connector x))
                 (exchange-NF-aux (rest nf)))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;funcion auxiliaren la que se basa exchange-NF para hacer el cambio 
 ;;
-;;
-;;
-;;
+;;RECIBE  : nf- lista de elementos
+;;EVALUA A: lista con los elementos combinados. 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun exchange-NF-aux (nf)
   (if (null nf) 
@@ -634,10 +634,10 @@
                    (exchange-NF-aux (rest nf)))) 
         (if (literal-p lst) (list lst) (rest lst))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;devuelve una clausula sin los conectores de manera que estos quedan supuestos
 ;;
-;;
-;;
-;;
+;;RECIBE  : una lista de elementos (Clausula)
+;;EVALUA A: una lista sin conectores en los que se suponen or's
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun simplify (connector lst-wffs )
   (if (literal-p lst-wffs)
