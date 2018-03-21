@@ -82,7 +82,13 @@
 (defparameter *planets* '(Avalon Davion Katril Kentares Mallory Proserpina Sirtis))
 
 (defparameter *white-holes*  
-  '((Avalon Mallory 6.4) (Avalon Proserpina 8.6)...))
+  '((Avalon Mallory 6.4) (Avalon Proserpina 8.6) 
+  	(Mallory Proserpina 15) (Mallory Katril 10)
+  	(Kentares Avalon 3) (Kentares Proserpina 7) (Kentares Katril 10)
+  	(Davion Proserpina 5) (Davion Sirtis 6)
+  	(Proserpina Avalon 8.6) (Proserpina Mallory 15) (Proserpina Davion 5) (Proserpina Sirtis 12)
+  	(Katril Mallory 10) (Katril Davion 9)
+  	(Sirtis Proserpina 12) (Sirtis Davion 6)))
 
 (defparameter *worm-holes*  
   '((Avalon Kentares 4) (Avalon Mallory 9)
@@ -90,7 +96,10 @@
     (Kentares Avalon 4) (Kentares Proserpina 12) ...))
  
 (defparameter *sensors* 
-  '((Avalon 15) (Davion 5) ...))
+  '((Avalon 15) (Mallory 12) 
+  	(Kentares 14) (Davion 5) 
+  	(Proserpina 7) (Katril 9) 
+  	(Sirtis 0)))
 
 (defparameter *planet-origin* 'Mallory)
 (defparameter *planets-destination* '(Sirtis))
