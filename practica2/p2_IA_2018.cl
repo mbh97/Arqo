@@ -1,10 +1,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
 ;;    Lab assignment 2: Search
-;;    LAB GROUP: 
-;;    Couple:  
-;;    Author 1: 
-;;    Author 2:
+;;    LAB GROUP: 2301
+;;    Couple:  6
+;;    Author 1: Maria Barroso 
+;;    Author 2: Blanca Abella 
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -93,7 +93,13 @@
 (defparameter *worm-holes*  
   '((Avalon Kentares 4) (Avalon Mallory 9)
     (Davion Katril 5) (Davion Sirtis 8)  
-    (Kentares Avalon 4) (Kentares Proserpina 12) ...))
+    (Kentares Avalon 4) (Kentares Proserpina 12)
+    (Mallory Avalon 9) (Mallory Katril 5)
+    (Katril Mallory 5) (Katril Davion 5)
+    (Katril Sirtis 10) (Sirtis Katril 10)
+    (Sirtis Davion 8) (Sirtis Proserpina 9)
+    (Proserpina Sirtis 9) (Proserpina kentares 12)
+    (Proserpina Mallory 11) (Mallory Proserpina 11)))
  
 (defparameter *sensors* 
   '((Avalon 15) (Mallory 12) 
@@ -124,12 +130,15 @@
 ;;    The cost (a number) or NIL if the state is not in the sensor list
 ;;
 (defun f-h-galaxy (state sensors)
-  ...)
+  (if (null sensors)
+      nil
+  (if (equal state (first (first sensors)))
+      (second (first sensors))
+  (f-h-galaxy state (rest sensors))))) 
 
 (f-h-galaxy 'Sirtis *sensors*) ;-> 0
 (f-h-galaxy 'Avalon *sensors*) ;-> 15
 (f-h-galaxy 'Earth  *sensors*) ;-> NIL
-
 
 ;;
 ;; END: Exercise 1 -- Evaluation of the heuristic
@@ -141,13 +150,37 @@
 ;;
 ;; BEGIN: Exercise 2 -- Navigation operators
 ;;
+;; Devuelve la lista de acciones que se pueden efectuar a partir de un estado 
+;; a traves agujeros blancos
+;;
+;;  Input:
+;;    state: the current state (vis. the planet we are on)
+;;    white-holes: Listas constantes de tripletes formados por planeta origen, 
+;;     planeta destino y gasto energético (coste)
+;; 
+;;
+;;  Returns: la lista de acciones que se pueden efectuar a partir de un estado 
+;; a traves agujeros blancos
+;;    
 
+(defun get-actions (state holes planets-forbidden)
+  (unless (null holes)
+  (if (and (equal state (caar holes))(not (member (cadar holes) planets-forbidden :test #'equal))) ;;
+        (cons (cdar holes) (get-actions state (rest holes) planets-forbidden))
+        (get-actions state (rest holes) planets-forbidden))))
+
+
+(defun navigate (state holes planets-forbidden name)  
+  (mapcar #'(lambda(x) (make-action :name name
+                                  :origin state
+                                  :final (first x)
+                                  :cost (second x))) (get-actions state holes planets-forbidden)))
 
 (defun navigate-white-hole (state white-holes)
-  ...)
+    (navigate state white-holes NIL 'NAVIGATE-WHITE-HOLE))
 
 (defun navigate-worm-hole (state worm-holes planets-forbidden)
-  ...)
+  (navigate state worm-holes planets-forbidden 'NAVIGATE-WORM-HOLE))
 
 
 (navigate-worm-hole 'Mallory *worm-holes* *planets-forbidden*)  ;-> 
@@ -180,8 +213,16 @@
 ;; BEGIN: Exercise 3 -- Goal test
 ;;
 
+(defun parents (node)
+    (unless(null (node-parent node))
+      (cons (node-state (node-parent node)) (parents (node-parent node)))))
+
+(defun all-visited (parents planets-mandatory)
+  (not(some #'null(mapcar #'(lambda(x) (member x parents :test #'equal)) planets-mandatory))))
+
 (defun f-goal-test-galaxy (node planets-destination planets-mandatory) 
-  ...)
+  (unless (not (member (node-state node) planets-destination))
+    (all-visited (parents node) planets-mandatory)))
 
 
 (defparameter node-01
@@ -205,7 +246,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; BEGIN: Exercise  -- Equal predicate for search states
+;; BEGIN: Exercise 3B  -- Equal predicate for search states
 ;;
 
 (defun f-search-state-equal-galaxy (node-1 node-2 &optional planets-mandatory)
