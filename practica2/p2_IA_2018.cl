@@ -249,8 +249,25 @@
 ;; BEGIN: Exercise 3B  -- Equal predicate for search states
 ;;
 
+(defun equal-lists (l1 l2)
+	(and (null (set-difference l1 l2)) (null(set-difference l2 l1))))
+
+
+(defun visited (node)
+    (if (null (node-parent node))
+    	(list (node-state node))
+    (cons (node-state node) (visited (node-parent node)))))
+
+(defun restantes (visited planets-mandatory)
+	(remove-if #'(lambda(x) (member x visited :test #'equal)) planets-mandatory))
+
+
 (defun f-search-state-equal-galaxy (node-1 node-2 &optional planets-mandatory)
-  ...)
+  (if (equal (node-state node-1) (node-state node-2))
+	(equal-lists (restantes (visited node-1) planets-mandatory) (restantes (visited node-2) planets-mandatory))
+	nil))
+
+
        
 (f-search-state-equal-galaxy node-01 node-01) ;-> T
 (f-search-state-equal-galaxy node-01 node-02) ;-> NIL
@@ -281,13 +298,12 @@
   (make-problem 
    :states               *planets*          
    :initial-state        *planet-origin*
-   :f-h                  #'(lambda (state) ...)
-   :f-goal-test          #'(lambda (node) ...)
-   :f-search-state-equal #'(lambda (node-1 node-2)...)
+   :f-h                  #'(lambda (state) (f-h-galaxy state *sensors*))
+   :f-goal-test          #'(lambda (node) (f-goal-test-galaxy node *planets-destination* *planets-mandatory*))
+   :f-search-state-equal #'(lambda (node-1 node-2) (f-search-state-equal-galaxy node-1 node-2 *planets-mandatory*))
    :operators            (list 
-                          #'(lambda (node)
-                              ...)
-                             ...)))
+                          #'(lambda (state) (navigate-white-hole state *white-holes*))
+                          #'(lambda (state) (navigate-worm-hole state *worm-holes* *planets-forbidden*)))))
 
 
 ;;
@@ -301,7 +317,21 @@
 ;; BEGIN Exercise 5: Expand node
 ;;
 (defun expand-node (node problem)
-  ...)
+	(mapcar #'(lambda(action) (make-node :state (action-final action) 
+									 :parent node 
+									 :action action
+									 :depth (+ (node-depth node) 1)
+									 :g (+ (node-g node) (action-cost action)) 
+									 :h (+ (funcall (problem-f-h problem) (action-final action)) (node-h node))
+									 :f 0)) # g + h
+				(union-actions (node-state node) problem)))
+
+
+
+
+(defun union-actions (state problem)
+	(append (funcall (first (problem-operators problem)) state) (funcall (second (problem-operators problem)) state)))
+
 
 (defparameter node-00
    (make-node :state 'Proserpina :depth 12 :g 10 :f 20) )
@@ -354,8 +384,20 @@
 ;;;  BEGIN Exercise 6 -- Node list management
 ;;;  
 (defun insert-nodes-strategy (nodes lst-nodes strategy)
-  ...)
+	(insert-nodes-strategy-aux nodes (insert-nodes-strategy-aux (rest lst-nodes) (list (first lst-nodes)) strategy) strategy))
 
+(defun insert-nodes-strategy-aux (nodes lst-nodes strategy)
+	(cond ((null nodes)
+				lst-nodes)
+		  ((null lst-nodes)
+				(insert-nodes-strategy-aux (rest nodes) (list (first nodes)) strategy))
+		  ((null (rest nodes))
+		  		(if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes))
+		  			(cons (first nodes) lst-nodes)
+		  			(cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy))))
+		  ((if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes))
+		  			(insert-nodes-strategy-aux (rest nodes) (cons (first nodes) lst-nodes) strategy)
+		  			(insert-nodes-strategy-aux (rest nodes) (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy)) strategy)))))
 
 
 (defparameter node-01
@@ -363,9 +405,23 @@
 (defparameter node-02
    (make-node :state 'Kentares :depth 2 :g 50 :f 50) )
 
+(defun node-g-<= (node-1 node-2)
+	(<= (node-g node-1)
+	(node-g node-2)))
+
+(defparameter *uniform-cost*
+	(make-strategy
+		:name 'uniform-cost
+		:node-compare-p #'node-g-<=))
+
+(defun node-g-<= (node-1 node-2)
+	(<= (node-g node-1)
+	(node-g node-2)))
+
 (print (insert-nodes-strategy (list node-00 node-01 node-02) 
                         lst-nodes-00 
-                        *uniform-cost*));->
+                        *uniform-cost*))
+
 ;;;(#S(NODE :STATE AVALON 
 ;;;         :PARENT NIL 
 ;;;         :ACTION NIL 
@@ -454,9 +510,9 @@
 ;;;         :DEPTH 2    :G 50    :H 0   :F 50))
 
 
-;;;(insert-nodes-strategy '(4 8 6 2) '(1 3 5 7)
-;;;		(make-strategy 	:name 'simple
-;;;					:node-compare-p #'<));-> (1 2 3 4 5 6 7)
+(insert-nodes-strategy '(4 8 6 2) '(1 3 5 7)
+		(make-strategy 	:name 'simple
+					:node-compare-p #'<));-> (1 2 3 4 5 6 7 8)
  
 
 
