@@ -316,21 +316,29 @@
 ;;
 ;; BEGIN Exercise 5: Expand node
 ;;
-(defun expand-node (node problem)
-	(mapcar #'(lambda(action) (make-node :state (action-final action) 
-									 :parent node 
-									 :action action
-									 :depth (+ (node-depth node) 1)
-									 :g (+ (node-g node) (action-cost action)) 
-									 :h (+ (funcall (problem-f-h problem) (action-final action)) (node-h node))
-									 :f 0)) # g + h
-				(union-actions (node-state node) problem)))
-
-
 
 
 (defun union-actions (state problem)
 	(append (funcall (first (problem-operators problem)) state) (funcall (second (problem-operators problem)) state)))
+
+
+
+
+(defun expand-node (node problem)
+	(mapcar #'(lambda(action) 
+			(let ((gval (+ (node-g node) (action-cost action)))
+				 (hval (funcall (problem-f-h problem) (action-final action))))
+						(make-node :state (action-final action) 
+									 :parent node 
+									 :action action
+									 :depth (+ (node-depth node) 1)
+									 :g gval 
+									 :h hval
+									 :f (+ gval hval))))
+	(union-actions (node-state node) problem)))
+
+
+
 
 
 (defparameter node-00
@@ -531,8 +539,15 @@
 ;; node to be analyzed is the one with the smallest value of g+h
 ;;
 
+
+(defun node-f-<= (node-1 node-2)
+	(<= (node-f node-1)
+	(node-f node-2)))
+
 (defparameter *A-star*
-  (make-strategy ...))
+  (make-strategy
+		:name 'A-star
+		:node-compare-p #'node-f-<=))
 
 ;;
 ;; END: Exercise 7 -- Definition of the A* strategy
@@ -579,7 +594,7 @@
 ;;;    BEGIN Exercise 9: Solution path / action sequence
 ;;;
 (defun solution-path (node)
-  ...)
+  )
 
 (solution-path nil) ;;; -> NIL 
 (solution-path (a-star-search *galaxy-M35*))  ;;;-> (MALLORY ...)
