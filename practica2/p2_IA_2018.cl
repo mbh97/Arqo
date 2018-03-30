@@ -560,17 +560,33 @@
 ;;; 
 ;;;    BEGIN Exercise 8: Search algorithm
 ;;;
-(defun graph-search (problem strategy)
-  ...)
 
 
-;
+(defun auxgs (node closed-nodes)
+	(if (not(member node closed-nodes))
+		nil
+		(node-g-<= node (first (member node closed-nodes)))))
+
+
+(defun graph-search-aux (problem strategy opened closed)
+  (cond ;;((null opened) nil)		  
+        ((not(null (f-goal-test-galaxy (first opened) *planets-destination* *planets-mandatory*))) 
+		  	(first opened))
+		  ((or(not (member (first opened) closed :test #'equal))(auxgs (first opened) closed))
+		  	(and(insert-nodes-strategy(expand-node (first opened) problem) opened strategy)(cons (first opened) closed)(graph-search-aux problem strategy (rest opened) closed)))
+	  	  (t(graph-search-aux problem strategy (rest opened) closed))))
+
+
+(defun graph-search (problem strategy opened)
+	(graph-search-aux problem strategy opened nil))
+
 ;  Solve a problem using the A* strategy
 ;
-(defun a-star-search (problem)...)
+(defun a-star-search (problem)
+		(graph-search problem *A-star*))
 
 
-(graph-search *galaxy-M35* *A-star*);->
+(graph-search *galaxy-M35* *A-star* (cons(make-node :state (problem-initial-state *galaxy-m35*)) nil));->
 ;;;#S(NODE :STATE ...
 ;;;        :PARENT #S(NODE :STATE ...
 ;;;                        :PARENT #S(NODE :STATE ...)) 
