@@ -573,24 +573,79 @@
         ((not(null (f-goal-test-galaxy (first opened) *planets-destination* *planets-mandatory*))) 
 		  	(first opened))
 		  ((or(not (member (first opened) closed :test #'equal))(auxgs (first opened) closed))
-		  	(and(insert-nodes-strategy(expand-node (first opened) problem) opened strategy)(cons (first opened) closed)(graph-search-aux problem strategy (rest opened) closed)))
+		  		(let ((open-nodes (insert-nodes-strategy (expand-node (first opened) problem) opened strategy))
+		  			(closed-nodes (cons (first opened) closed)))
+						(graph-search-aux problem strategy (rest open-nodes) closed-nodes)))
 	  	  (t(graph-search-aux problem strategy (rest opened) closed))))
 
 
-(defun graph-search (problem strategy opened)
-	(graph-search-aux problem strategy opened nil))
-
+(defun graph-search (problem strategy)
+	(graph-search-aux problem strategy (list (make-node :state (problem-initial-state *galaxy-m35*))) nil))
+	
+(defun graph-search (problem strategy)
+	(let ((opened (list (make-node :state (problem-initial-state *galaxy-m35*)))))
+			(graph-search-aux problem strategy opened nil)))
+	
+	
 ;  Solve a problem using the A* strategy
 ;
 (defun a-star-search (problem)
 		(graph-search problem *A-star*))
 
 
-(graph-search *galaxy-M35* *A-star* (cons(make-node :state (problem-initial-state *galaxy-m35*)) nil));->
-;;;#S(NODE :STATE ...
-;;;        :PARENT #S(NODE :STATE ...
-;;;                        :PARENT #S(NODE :STATE ...)) 
-
+(graph-search *galaxy-M35* *A-star*);->
+;#S(NODE
+;   :STATE SIRTIS
+;   :PARENT #S(NODE
+;              :STATE PROSERPINA
+;              :PARENT #S(NODE
+;                         :STATE DAVION
+;                         :PARENT #S(NODE
+;                                    :STATE KATRIL
+;                                    :PARENT #S(NODE
+;                                               :STATE MALLORY
+;                                               :PARENT NIL
+;                                               :ACTION NIL
+;                                               :DEPTH 0
+;                                               :G 0
+;                                               :H 0
+;                                               :F 0)
+;                                    :ACTION #S(ACTION
+;                                               :NAME NAVIGATE-WHITE-HOLE
+;                                               :ORIGIN MALLORY
+;                                               :FINAL KATRIL
+;                                               :COST 10)
+;                                    :DEPTH 1
+;                                    :G 10
+;                                    :H 9
+;                                    :F 19)
+;                         :ACTION #S(ACTION
+;                                    :NAME NAVIGATE-WORM-HOLE
+;                                    :ORIGIN KATRIL
+;                                    :FINAL DAVION
+;                                    :COST 5)
+;                         :DEPTH 2
+;                         :G 15
+;                         :H 5
+;                         :F 20)
+;              :ACTION #S(ACTION
+;                         :NAME NAVIGATE-WHITE-HOLE
+;                         :ORIGIN DAVION
+;                         :FINAL PROSERPINA
+;                         :COST 5)
+;              :DEPTH 3
+;              :G 20
+;              :H 7
+;              :F 27)
+;   :ACTION #S(ACTION
+;              :NAME NAVIGATE-WORM-HOLE
+;              :ORIGIN PROSERPINA
+;              :FINAL SIRTIS
+;              :COST 9)
+;   :DEPTH 4
+;   :G 29
+;   :H 0
+;   :F 29)
 
 (print (a-star-search *galaxy-M35*));->
 ;;;#S(NODE :STATE ...
