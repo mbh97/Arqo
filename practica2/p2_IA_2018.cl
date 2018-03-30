@@ -214,7 +214,7 @@
 ;;
 
 (defun parents (node)
-    (unless(null (node-parent node))
+    (unless(or (null node) (null (node-parent node)))
       (cons (node-state (node-parent node)) (parents (node-parent node)))))
 
 (defun all-visited (parents planets-mandatory)
@@ -578,9 +578,6 @@
 						(graph-search-aux problem strategy (rest open-nodes) closed-nodes)))
 	  	  (t(graph-search-aux problem strategy (rest opened) closed))))
 
-
-(defun graph-search (problem strategy)
-	(graph-search-aux problem strategy (list (make-node :state (problem-initial-state *galaxy-m35*))) nil))
 	
 (defun graph-search (problem strategy)
 	(let ((opened (list (make-node :state (problem-initial-state *galaxy-m35*)))))
@@ -664,18 +661,27 @@
 ;;; 
 ;;;    BEGIN Exercise 9: Solution path / action sequence
 ;;;
+
+
 (defun solution-path (node)
-  )
+  (reverse (parents node)))
 
 (solution-path nil) ;;; -> NIL 
-(solution-path (a-star-search *galaxy-M35*))  ;;;-> (MALLORY ...)
+(solution-path (a-star-search *galaxy-M35*))  ;;;-> (MALLORY KATRIL DAVION PROSERPINA)
 
-(defun action-sequence-aux (node)
-  ...)
+
+(defun actions (node)
+    (unless(or (null node) (null (node-action node)))
+      (cons (node-action node) (actions (node-parent node)))))
+(defun action-sequence (node)
+  (reverse (actions node)))
 
 (action-sequence (a-star-search *galaxy-M35*))
 ;;; ->
-;;;(#S(ACTION :NAME ...)) 
+;;; (#S(ACTION :NAME NAVIGATE-WHITE-HOLE :ORIGIN MALLORY :FINAL KATRIL :COST 10)
+;;; #S(ACTION :NAME NAVIGATE-WORM-HOLE :ORIGIN KATRIL :FINAL DAVION :COST 5)
+;;; #S(ACTION :NAME NAVIGATE-WHITE-HOLE :ORIGIN DAVION :FINAL PROSERPINA :COST 5)
+;;; #S(ACTION :NAME NAVIGATE-WORM-HOLE :ORIGIN PROSERPINA :FINAL SIRTIS :COST 9))
 
 ;;; 
 ;;;    END Exercise 9: Solution path / action sequence
