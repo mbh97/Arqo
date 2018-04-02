@@ -981,12 +981,13 @@
    :name 'depth-first
    :node-compare-p #'depth-first-node-compare-p))
 
-;;
+
 ;;depth-first-node-compare-p (node-1 node-2)
 ;;
-;; input: node
+;; input: node-1 nodo
+;;        node-2 nodo
 ;;
-;;
+;;returns: T si depth de node-1 es mayor que depth de node-2, nil en caso contrario
 
 
 (defun depth-first-node-compare-p (node-1 node-2)
@@ -996,10 +997,19 @@
 (solution-path (graph-search *galaxy-M35* *depth-first*))
 ;;; -> No encuentra solucion por bucle infinito
 
+
+;; definimos la estrategia breadth-first
 (defparameter *breadth-first*
   (make-strategy
    :name 'breadth-first
    :node-compare-p #'breadth-first-node-compare-p))
+
+;;breadth-first-node-compare-p (node-1 node-2)
+;;
+;; input: node-1 nodo
+;;        node-2 nodo
+;;
+;;returns: T si depth de node-1 es nenor que depth de node-2, nil en caso contrario
 
 (defun breadth-first-node-compare-p (node-1 node-2)
   (<= (node-depth node-1)
