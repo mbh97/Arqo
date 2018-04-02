@@ -388,25 +388,61 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;;  BEGIN Exercise 6 -- Node list management
-;;;  
-(defun insert-nodes-strategy (nodes lst-nodes strategy)
-	(insert-nodes-strategy-aux nodes (insert-nodes-strategy-aux (rest lst-nodes) (list (first lst-nodes)) strategy) strategy))
+;;
+;;  BEGIN Exercise 6 -- Node list management
+;;  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                FUNCION AUXILIAR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;insert-nodes-strategy-aux (nodes lst-nodes strategy)
+;;
+;; Devuelve una lista de nodos ordenados segun una estrategia dada. 
+;;
+;;  Input:
+;;    nodes: nodos a insertar en la lista
+;;    lst-nodes: Lista ordenada donde insertar los nodos.
+;;    strategy: estrategia que utilizar para insertar los nodos
+;;
+;;  Returns: la lista de nodos ordenados según la estrategia
 
 (defun insert-nodes-strategy-aux (nodes lst-nodes strategy)
-	(cond ((null nodes)
-				lst-nodes)
-		  ((null lst-nodes)
-				(insert-nodes-strategy-aux (rest nodes) (list (first nodes)) strategy))
-		  ((null (rest nodes))
-		  		(if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes))
-		  			(cons (first nodes) lst-nodes)
-		  			(cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy))))
-		  ((if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes))
-		  			(insert-nodes-strategy-aux (rest nodes) (cons (first nodes) lst-nodes) strategy)
-		  			(insert-nodes-strategy-aux (rest nodes) (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy)) strategy)))))
+  (cond ((null nodes)
+        lst-nodes)
+      ((null lst-nodes)
+        (insert-nodes-strategy-aux (rest nodes) (list (first nodes)) strategy)) ;; si la lista inicial esta vacia, ordenamos los nodos
+      ((null (rest nodes)) ;; solo hay un nodo que insertar
+          (if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes))
+            (cons (first nodes) lst-nodes) ;; si el primer nodo es menor que el primero de la lista
+            (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy))));; si no es menor que el primero, colocamos el primer elemento de la lista al principio y seguimos con el resto pra ver donde insertarlo
+      ;;si hay mas de un nodo que insertar
+      ((if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes)) 
+            ;; si el primer nodo de nodes es menor que el de la lista
+            (insert-nodes-strategy-aux (rest nodes) (cons (first nodes) lst-nodes) strategy);; repetimos el procemiento con el resto de nodos y la lista con el primer nodo insertado al principio
+            (insert-nodes-strategy-aux (rest nodes) (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy)) strategy)))));;repetimos el procemiento con el resto de nodos y con la lista ordenada con el primer nodo insertado segun la estrategia.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                  FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; insert-nodes-strategy (nodes lst-nodes strategy)
+;;
+;; Devuelve una lista de nodos ordenados segun una estrategia dada. 
+;;
+;;  Input:
+;;    nodes: nodos a insertar en la lista
+;;    lst-nodes: Lista donde insertar los nodos.
+;;    strategy: estrategia que utilizar para insertar los nodos
+;;
+;;  Returns: la lista de nodos ordenados según la estrategia
+
+(defun insert-nodes-strategy (nodes lst-nodes strategy)
+  ;; llama a la auxuliar habiendo ordenado previamente lst-nodes con ayuda de la auxiliar tambien
+	(insert-nodes-strategy-aux nodes (insert-nodes-strategy-aux (rest lst-nodes) (list (first lst-nodes)) strategy) strategy))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;    EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter node-01
    (make-node :state 'Avalon :depth 0 :g 0 :f 0) )
@@ -421,10 +457,6 @@
 	(make-strategy
 		:name 'uniform-cost
 		:node-compare-p #'node-g-<=))
-
-(defun node-g-<= (node-1 node-2)
-	(<= (node-g node-1)
-	(node-g node-2)))
 
 (print (insert-nodes-strategy (list node-00 node-01 node-02) 
                         lst-nodes-00 
@@ -538,12 +570,19 @@
 ;; us which nodes should be analyzed first. In the A* strategy, the first 
 ;; node to be analyzed is the one with the smallest value of g+h
 ;;
+;;
 
+;;node-f-<= (node-1 node-2)
+;; input: node-1 node
+;;        node-2 node
+;;
+;; returns: T si el valor f(g+h) de node-1 es menor que el de node-2, NIL en aso contrario
 
 (defun node-f-<= (node-1 node-2)
 	(<= (node-f node-1)
 	(node-f node-2)))
 
+;;definimos la estrategia *A-star* con nombre A-star y con funcion de comparacion node-f-<=
 (defparameter *A-star*
   (make-strategy
 		:name 'A-star
@@ -560,36 +599,84 @@
 ;;; 
 ;;;    BEGIN Exercise 8: Search algorithm
 ;;;
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;   FUNCIONES AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;auxgs (node closed-nodes)
+;;
+;; input: node nodo
+;;        closed-nodes lista de nodos explorados
+;;
+;; returns: nil si el nodo no esta en closed nodes o el nodo en closed-nodes es mayor
+;;          T si node esta en closed-nodes y es menor
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun auxgs (node closed-nodes)
-	(if (not(member node closed-nodes))
+	(if (not(member node closed-nodes)) ;; si node no esta en closed-nodes
 		nil
-		(node-g-<= node (first (member node closed-nodes)))))
+		(node-g-<= node (first (member node closed-nodes))))) ;;compara el valor g de los nodos 
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;graph-search-aux (problem strategy opened closed)
+;;
+;; input: problem problema a resolver
+;;        strategy estrategia a utilizar para resolverlo
+;;        opened lista de nodos encontrados no explorados
+;;        closed lista de nodos explorados
+;;
+;; returns nodo solucion del problema
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun graph-search-aux (problem strategy opened closed)
-  (cond ;;((null opened) nil)		  
+  (cond ((null opened) nil)	
+        ;; si el primer nodo de opened es el nodo objetivo, lo devuelve y termina  
         ((not(null (f-goal-test-galaxy (first opened) *planets-destination* *planets-mandatory*))) 
 		  	(first opened))
-		  ((or(not (member (first opened) closed :test #'equal))(auxgs (first opened) closed))
-		  		(let ((open-nodes (insert-nodes-strategy (expand-node (first opened) problem) opened strategy))
-		  			(closed-nodes (cons (first opened) closed)))
+        ;;si el primer nodo de opened no esta en closed, o es menor que el de closed
+		    ((or(not (member (first opened) closed :test #'equal))(auxgs (first opened) closed))
+		  		;; expande el nodo e inserta sus hijos en opened
+          (let ((open-nodes (insert-nodes-strategy (expand-node (first opened) problem) opened strategy))
+		  			;; mete el nodo en closed ya que ya ha sido explorado
+            (closed-nodes (cons (first opened) closed)))
+            ;; vuelve a realizar la busqueda
 						(graph-search-aux problem strategy (rest open-nodes) closed-nodes)))
+        ;; si el nodo es mayor que el que esta en closed, realiza la busqueda con los siguientes nodos
 	  	  (t(graph-search-aux problem strategy (rest opened) closed))))
-
-	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;    FUNCIONES PRINCIPALES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;graph-search (problem strategy)
+;;
+;; input: problem problema a resolver
+;;        strategy estrategia utilizada para resolverlo
+;;
+;; returns: nodo solucion del problema 
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun graph-search (problem strategy)
+  ;; llamamos open-nodes a la lista con el estado inicial del problema
 	(let ((opened (list (make-node :state (problem-initial-state *galaxy-m35*)))))
-			(graph-search-aux problem strategy opened nil)))
+      ;;iniciamos la busqueda con closed-nodes a nil ya que aun no habra ningun nodo explorado
+			(graph-search-aux problem strategy open-nodes nil)))
 	
-	
-;  Solve a problem using the A* strategy
-;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; a-star-search (problem)
+;; 
+;; input: problem problema a resolver
+;;
+;; returns: solucion al problema aplicando la estragia A-star
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun a-star-search (problem)
 		(graph-search problem *A-star*))
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (graph-search *galaxy-M35* *A-star*);->
 ;#S(NODE
 ;   :STATE SIRTIS
@@ -660,21 +747,55 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;;    BEGIN Exercise 9: Solution path / action sequence
-;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; solution-path (node)
+;;
+;; input: node nodo solucion de un problema
+;;
+;; returns: lista con los estados por los que ha pasado hasta llegar a el.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun solution-path (node)
-  (reverse (parents node)))
+  (reverse (parents node))) ;; ntes va devolviendo padres y reverse les da la vuelta 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (solution-path nil) ;;; -> NIL 
 (solution-path (a-star-search *galaxy-M35*))  ;;;-> (MALLORY KATRIL DAVION PROSERPINA)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; actions (node)
+;;
+;; input: node nodo
+;;
+;; returns: lista con las acciones inversas que se han realizado hasta llegar al nodo dado (fin-principio)
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun actions (node)
     (unless(or (null node) (null (node-action node)))
       (cons (node-action node) (actions (node-parent node)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; action-sequence(node)
+;;
+;; input: node nodo
+;;
+;; returns: lista con las acciones que se han realizado hasta llegar al nodo dado
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun action-sequence (node)
-  (reverse (actions node)))
+  (reverse (actions node))) ;; actions da las acciones de fin a principio y reverse les da la vuelta
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (action-sequence (a-star-search *galaxy-M35*))
 ;;; ->
