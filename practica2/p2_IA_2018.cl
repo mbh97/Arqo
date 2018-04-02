@@ -573,12 +573,12 @@
       ((null (rest nodes)) ;; solo hay un nodo que insertar
           (if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes))
             (cons (first nodes) lst-nodes) ;; si el primer nodo es menor que el primero de la lista
-            (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy))));; si no es menor que el primero, colocamos el primer elemento de la lista al principio y seguimos con el resto pra ver donde insertarlo
+            (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy))));; si no es menor que el primero, colocamos el primer elemento de la lista al principio y seguimos con el resto para ver donde insertarlo
       ;;si hay mas de un nodo que insertar
       ((if (funcall (strategy-node-compare-p strategy) (first nodes) (first lst-nodes)) 
             ;; si el primer nodo de nodes es menor que el de la lista
-            (insert-nodes-strategy-aux (rest nodes) (cons (first nodes) lst-nodes) strategy);; repetimos el procemiento con el resto de nodos y la lista con el primer nodo insertado al principio
-            (insert-nodes-strategy-aux (rest nodes) (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy)) strategy)))));;repetimos el procemiento con el resto de nodos y con la lista ordenada con el primer nodo insertado segun la estrategia.
+            (insert-nodes-strategy-aux (rest nodes) (cons (first nodes) lst-nodes) strategy);; repetimos el procedimiento con el resto de nodos y la lista con el primer nodo insertado al principio
+            (insert-nodes-strategy-aux (rest nodes) (cons (first lst-nodes) (insert-nodes-strategy-aux (list (first nodes)) (rest lst-nodes) strategy)) strategy)))));;repetimos el procedimiento con el resto de nodos y con la lista ordenada con el primer nodo insertado segun la estrategia.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                  FUNCION PRINCIPAL
@@ -785,7 +785,7 @@
 ;;        opened lista de nodos encontrados no explorados
 ;;        closed lista de nodos explorados
 ;;
-;; returns nodo solucion del problema
+;; returns nodo que cumple el test objetivo
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun graph-search-aux (problem strategy opened closed)
   (cond ((null opened) nil)	
@@ -811,7 +811,7 @@
 ;; input: problem problema a resolver
 ;;        strategy estrategia utilizada para resolverlo
 ;;
-;; returns: nodo solucion del problema 
+;; returns: nodo que cumple el test objetivo 
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun graph-search (problem strategy)
@@ -826,7 +826,7 @@
 ;; 
 ;; input: problem problema a resolver
 ;;
-;; returns: solucion al problema aplicando la estragia A-star
+;; returns: solucion al problema aplicando la estrategia A-star
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -973,12 +973,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;;    BEGIN Exercise 10: depth-first / breadth-first
-;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; definimos la estrategia depth-first
 (defparameter *depth-first*
   (make-strategy
    :name 'depth-first
    :node-compare-p #'depth-first-node-compare-p))
+
+;;
+;;depth-first-node-compare-p (node-1 node-2)
+;;
+;; input: node
+;;
+;;
+
 
 (defun depth-first-node-compare-p (node-1 node-2)
   (>= (node-depth node-1)
