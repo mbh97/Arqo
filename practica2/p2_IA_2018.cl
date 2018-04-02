@@ -169,7 +169,7 @@
 ;;     planeta destino y gasto energético (coste)
 ;;		planets-forbidden: planetas prohibidos en caso de worm-holes, o nil en caso de white-holes
 ;; Returns
-;;		lista de acctiones permitidas
+;;		lista de acciones permitidas
     
 (defun get-actions (state holes planets-forbidden)
 	(unless (null holes) ; si holes == null, evalua a nil      
@@ -432,6 +432,7 @@
 ;;  BEGIN: Exercise 4 -- Define the galaxy structure
 ;;
 ;;
+
 (defparameter *galaxy-M35* 
   (make-problem 
    :states               *planets*          
@@ -454,18 +455,39 @@
 ;;
 ;; BEGIN Exercise 5: Expand node
 ;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCION AUXILIAR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; union-actions
+;; funcion que crea una lista con las acciones permitidas utilizando agujeros blancos y de gusano
+;; Input
+;;		state: estado actual
+;;		problem: problema bajo estudio
+;; Returns
+;;		lista de acciones permitidas por cada operador
 
 (defun union-actions (state problem)
-	(append (funcall (first (problem-operators problem)) state) (funcall (second (problem-operators problem)) state)))
+	(append (funcall (first (problem-operators problem)) state) 
+			(funcall (second (problem-operators problem)) state)))
 
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; expand-node
+;;  función de expansión de nodos
+;;
+;;  Input:
+;;    node: nodo a expandir
+;;    problem: problema bajo estudio
+;;
+;;  Returns: lista de nodos correspondientes a un estado que se puede alcanzar directamente desde el estado del nodo dado
 
 (defun expand-node (node problem)
 	(mapcar #'(lambda(action) 
 			(let ((gval (+ (node-g node) (action-cost action)))
-				 (hval (funcall (problem-f-h problem) (action-final action))))
+				  (hval (funcall (problem-f-h problem) (action-final action))))
 						(make-node :state (action-final action) 
 									 :parent node 
 									 :action action
@@ -475,9 +497,9 @@
 									 :f (+ gval hval))))
 	(union-actions (node-state node) problem)))
 
-
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter node-00
    (make-node :state 'Proserpina :depth 12 :g 10 :f 20) )
@@ -516,7 +538,6 @@
 ;;;         :PARENT #S(NODE :STATE PROSERPINA :PARENT NIL :ACTION NIL :DEPTH 12 :G 10 :H 0 :F 20)
 ;;;         :ACTION #S(ACTION :NAME NAVIGATE-WORM-HOLE :ORIGIN PROSERPINA :FINAL SIRTIS :COST 9)
 ;;;         :DEPTH 13   :G 19    :H 0   :F 19))
-
 
 
 ;;
@@ -928,6 +949,7 @@
 ;; returns: lista con las acciones que se han realizado hasta llegar al nodo dado
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun action-sequence (node)
   (reverse (actions node))) ;; actions da las acciones de fin a principio y reverse les da la vuelta
 
@@ -959,10 +981,11 @@
    :node-compare-p #'depth-first-node-compare-p))
 
 (defun depth-first-node-compare-p (node-1 node-2)
-  ...)
+  (>= (node-depth node-1)
+      (node-depth node-2)))
 
 (solution-path (graph-search *galaxy-M35* *depth-first*))
-;;; -> (MALLORY ... )
+;;; -> No encuentra solucion por bucle infinito
 
 (defparameter *breadth-first*
   (make-strategy
@@ -970,10 +993,11 @@
    :node-compare-p #'breadth-first-node-compare-p))
 
 (defun breadth-first-node-compare-p (node-1 node-2)
-  ...)
+  (<= (node-depth node-1)
+      (node-depth node-2)))
 
 (solution-path (graph-search *galaxy-M35* *breadth-first*))
-;; -> (MALLORY ... )
+;; -> (MALLORY KATRIL DAVION PROSERPINA)
 
 ;;; 
 ;;;    END Exercise 10: depth-first / breadth-first
