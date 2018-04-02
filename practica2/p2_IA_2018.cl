@@ -129,16 +129,23 @@
 ;;  Returns:
 ;;    The cost (a number) or NIL if the state is not in the sensor list
 ;;
-(defun f-h-galaxy (state sensors)
-  (if (null sensors)
-      nil
-  (if (equal state (first (first sensors)))
-      (second (first sensors))
-  (f-h-galaxy state (rest sensors))))) 
 
+(defun f-h-galaxy (state sensors)
+  (if (null sensors) ; caso de error, devuelve nil
+  		nil
+  (let ((estado (first (first sensors))) ; estado = first (first sensors)
+  		(coste (second (first sensors)))) ; coste =  second (first sensors)
+  (if (equal state estado) ; si state == estado
+  		coste
+  (f-h-galaxy state (rest sensors)))))) ; si no, llamada recursiva a f-h-galaxy con sensor sin el primer par
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (f-h-galaxy 'Sirtis *sensors*) ;-> 0
 (f-h-galaxy 'Avalon *sensors*) ;-> 15
 (f-h-galaxy 'Earth  *sensors*) ;-> NIL
+(f-h-galaxy nil *sensors*) ;-> NIL
 
 ;;
 ;; END: Exercise 1 -- Evaluation of the heuristic
@@ -150,6 +157,54 @@
 ;;
 ;; BEGIN: Exercise 2 -- Navigation operators
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCIONES AUXILIARES 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; get-actions
+;; funcion que devuelve la lista de pares (planeta-destino coste) de acctiones permitidas a partir de un estado a traves de los distintos agujeros existentes
+;; Input
+;; 		state: estado actual
+;;		holes: Listas constantes de tripletes formados por planeta origen, 
+;;     planeta destino y gasto energético (coste)
+;;		planets-forbidden: planetas prohibidos en caso de worm-holes, o nil en caso de white-holes
+;; Returns
+;;		lista de acctiones permitidas
+    
+(defun get-actions (state holes planets-forbidden)
+	(unless (null holes) ; si holes == null, evalua a nil      
+	(let ((planeta-origen (caar holes))
+		(planeta-destino (cadar holes))
+		(dest-cost (cdar holes)))
+	(if (and (equal state planeta-origen) ; si state == planeta origen
+  		(not (member planeta-destino planets-forbidden :test #'equal))) ; si el planeta destino no pertenece a planets-forbidden
+    		(cons dest-cost (get-actions state (rest holes) planets-forbidden)) ; formamos lista de pares (planeta-destino coste)
+		(get-actions state (rest holes) planets-forbidden))))) ; otro caso, llamada recursiva con el resto de tripletas de holes
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; navigate
+;; funcion que contruye una lista de acciones que se pueden efectuar a partir de un estado 
+;; a traves agujeros blancos o negros
+;; Input
+;;		state: estado actual
+;;		holes: Listas constantes de tripletes formados por planeta origen, 
+;;		planeta destino y gasto energético (coste)
+;;		planets-forbidden: planetas prohibidos en caso de worm-holes, o nil en caso de white-holes
+;;		name: nombre de la accion a construir
+;; Returns
+;;		lista de acciones permitidas
+
+(defun navigate (state holes planets-forbidden name)  
+  (mapcar #'(lambda(x) (make-action :name name
+                                  :origin state
+                                  :final (first x)
+                                  :cost (second x))) (get-actions state holes planets-forbidden)))
+                                  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCIONES PRINCIPALES 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; navigate-white-hole
 ;; Devuelve la lista de acciones que se pueden efectuar a partir de un estado 
 ;; a traves agujeros blancos
 ;;
@@ -161,27 +216,30 @@
 ;;
 ;;  Returns: la lista de acciones que se pueden efectuar a partir de un estado 
 ;; a traves agujeros blancos
-;;    
-
-(defun get-actions (state holes planets-forbidden)
-  (unless (null holes)
-  (if (and (equal state (caar holes))(not (member (cadar holes) planets-forbidden :test #'equal))) ;;
-        (cons (cdar holes) (get-actions state (rest holes) planets-forbidden))
-        (get-actions state (rest holes) planets-forbidden))))
-
-
-(defun navigate (state holes planets-forbidden name)  
-  (mapcar #'(lambda(x) (make-action :name name
-                                  :origin state
-                                  :final (first x)
-                                  :cost (second x))) (get-actions state holes planets-forbidden)))
 
 (defun navigate-white-hole (state white-holes)
     (navigate state white-holes NIL 'NAVIGATE-WHITE-HOLE))
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; navigate-worm-hole
+;; Devuelve la lista de acciones que se pueden efectuar a partir de un estado 
+;; a traves agujeros de gusano
+;;
+;;  Input:
+;;    state: the current state (vis. the planet we are on)
+;;    worm-holes: Listas constantes de tripletes formados por planeta origen, 
+;;     planeta destino y gasto energético (coste)
+;; 
+;;
+;;  Returns: la lista de acciones que se pueden efectuar a partir de un estado 
+;; a traves agujeros de gusano
 
 (defun navigate-worm-hole (state worm-holes planets-forbidden)
   (navigate state worm-holes planets-forbidden 'NAVIGATE-WORM-HOLE))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (navigate-worm-hole 'Mallory *worm-holes* *planets-forbidden*)  ;-> 
 ;;;(#S(ACTION :NAME NAVIGATE-WORM-HOLE :ORIGIN MALLORY :FINAL KATRIL :COST 5)
@@ -212,18 +270,53 @@
 ;;
 ;; BEGIN: Exercise 3 -- Goal test
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCIONES AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; parents
+;; funcion que devuelve la lista de padres de un nodo dado
+;; Input
+;; 		node: nodo
+;; Returns
+;;		lista de padres de un nodo, o nil si no tiene
 
 (defun parents (node)
-    (unless(or (null node) (null (node-parent node)))
-      (cons (node-state (node-parent node)) (parents (node-parent node)))))
+    (unless(or (null node) (null (node-parent node))) ; si node == null o el nodo padre de node == null, devuelve nil
+      (cons (node-state (node-parent node)) (parents (node-parent node))))) ; formamos lista con el estado del nodo padre
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; all-visited
+;; funcion que comprueba si han sido visitados todos los planetas obligatorios a partir de la lista de padres de un nodo
+;; Input
+;;		parents: lista de padres de un nodo
+;;		planets-mandatory: planetas obligartorios de visitar
+;; Returns
+;;		T si se han visitado todos los planetas obligatorios, nil en caso contrario
 
 (defun all-visited (parents planets-mandatory)
   (not(some #'null(mapcar #'(lambda(x) (member x parents :test #'equal)) planets-mandatory))))
 
-(defun f-goal-test-galaxy (node planets-destination planets-mandatory) 
-  (unless (not (member (node-state node) planets-destination))
-    (all-visited (parents node) planets-mandatory)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; f-goal-test-galaxy
+;; Comprueba si se ha alcanzado el objetivo
+;;
+;;  Input:
+;;    node: the current node
+;;    planets-destination: lista de planetas destino posibles
+;;	  planets-mandatory: planetas obligatorios de visitar para que se cumpla el objetivo 
+;;
+;;  Returns: T si se ha alcanzado el objetivo, NILs en caso contrario
 
+(defun f-goal-test-galaxy (node planets-destination planets-mandatory) 
+  (unless (not (member (node-state node) planets-destination)) ; si el estado del nodo actual no pertenece a la lista de planetas destino, evalua a nil
+    (all-visited (parents node) planets-mandatory))) ; comprueba que los padres del nodo pertenecen a los planetas obligatorios
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter node-01
    (make-node :state 'Avalon) )
@@ -248,27 +341,72 @@
 ;;
 ;; BEGIN: Exercise 3B  -- Equal predicate for search states
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCIONES AUXILIARES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; equal-lists
+;; funcion que comprueba que dos listas son iguales
+;; Input
+;; 		l1: lista a comparar
+;;		l2: lista a comparar
+;; Returns:
+;;		t si son iguales, nil en caso contrario
 
 (defun equal-lists (l1 l2)
-	(and (null (set-difference l1 l2)) (null(set-difference l2 l1))))
+	(and (null (set-difference l1 l2)) ; si la lista de elementos de l1 que no aparecen en la l2 es nil
+		 (null (set-difference l2 l1)))) ; si la lista de elementos de l2 que no aparecen en la l1 tambien es nil, las dos listas son iguales
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; visited
+;; funcion que construye una lista de planetas visitados a partir de un nodo
+;; Input
+;; 		node: nodo actual
+;; Returns:
+;;		lista de planetas visitados
 
 (defun visited (node)
-    (if (null (node-parent node))
-    	(list (node-state node))
-    (cons (node-state node) (visited (node-parent node)))))
+    (if (null (node-parent node)) ; si el nodo no tiene padre
+    	(list (node-state node)) ; formamos lista con el estado del nodo actual
+    (cons (node-state node) (visited (node-parent node))))) ; cons del estado del nodo actual y sus antecesores
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; restantes
+;; funcion que devuelve la lista de planetas obligatorios que aun no se han visitado
+;; Input
+;;		visited: planetas visitados
+;;		planets-mandatory: planetas obligatorios
+;; Returns
+;;		planetas obligatorios que aun no se han visitado
 
 (defun restantes (visited planets-mandatory)
 	(remove-if #'(lambda(x) (member x visited :test #'equal)) planets-mandatory))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCION PRINCIPAL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; f-search-state-equal-galaxy
+;; Comprueba si dos para dos nodos son iguales de acuerdo con su estado de búsqueda.
+;;
+;;  Input:
+;;    node-1: nodo a comparar
+;;    node-2: nodo a comparar
+;;	  planets-mandatory: planetas obligatorios de visitar para que se cumpla el objetivo 
+;;
+;;  Returns: T si los dos nodos son iguales de acuerdo con su estado de búsqueda, nil en caso contrario
 
 (defun f-search-state-equal-galaxy (node-1 node-2 &optional planets-mandatory)
-  (if (equal (node-state node-1) (node-state node-2))
-	(equal-lists (restantes (visited node-1) planets-mandatory) (restantes (visited node-2) planets-mandatory))
+  (if (equal (node-state node-1) (node-state node-2)) ; si ambos nodos tienen el mismo estado
+	(equal-lists (restantes (visited node-1) planets-mandatory) ; comprueba que la lista de planetas restantes son iguales para ambos nodos
+				 (restantes (visited node-2) planets-mandatory))
 	nil))
 
 
-       
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (f-search-state-equal-galaxy node-01 node-01) ;-> T
 (f-search-state-equal-galaxy node-01 node-02) ;-> NIL
 (f-search-state-equal-galaxy node-02 node-04) ;-> T
@@ -758,7 +896,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun solution-path (node)
-  (reverse (parents node))) ;; ntes va devolviendo padres y reverse les da la vuelta 
+  (reverse (parents node))) ;; parents va devolviendo padres y reverse les da la vuelta 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJEMPLOS
