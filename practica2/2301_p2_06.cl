@@ -366,9 +366,10 @@
 ;;		lista de planetas visitados
 
 (defun visited (node)
+	(unless (null node)
     (if (null (node-parent node)) ; si el nodo no tiene padre
     	(list (node-state node)) ; formamos lista con el estado del nodo actual
-    (cons (node-state node) (visited (node-parent node))))) ; cons del estado del nodo actual y sus antecesores
+    (cons (node-state node) (visited (node-parent node)))))); cons del estado del nodo actual y sus antecesores
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; restantes
@@ -816,7 +817,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun graph-search (problem strategy)
   ;; llamamos open-nodes a la lista con el estado inicial del problema
-	(let ((opened (list (make-node :state (problem-initial-state *galaxy-m35*)))))
+	(let ((open-nodes (list (make-node :state (problem-initial-state *galaxy-m35*)))))
       ;;iniciamos la busqueda con closed-nodes a nil ya que aun no habra ningun nodo explorado
 			(graph-search-aux problem strategy open-nodes nil)))
 	
@@ -917,14 +918,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun solution-path (node)
-  (reverse (parents node))) ;; parents va devolviendo padres y reverse les da la vuelta 
+  (reverse (visited node))) ;; visited va devolviendo los estados de los nodos visitados y reverse les da la vuelta 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EJEMPLOS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (solution-path nil) ;;; -> NIL 
-(solution-path (a-star-search *galaxy-M35*))  ;;;-> (MALLORY KATRIL DAVION PROSERPINA)
+(solution-path (a-star-search *galaxy-M35*))  ;;;-> (MALLORY KATRIL DAVION PROSERPINA SIRTIS)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -975,13 +976,6 @@
 ;;;    BEGIN Exercise 10: depth-first / breadth-first
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; definimos la estrategia depth-first
-(defparameter *depth-first*
-  (make-strategy
-   :name 'depth-first
-   :node-compare-p #'depth-first-node-compare-p))
-
-
 ;;depth-first-node-compare-p (node-1 node-2)
 ;;
 ;; input: node-1 nodo
@@ -993,16 +987,17 @@
 (defun depth-first-node-compare-p (node-1 node-2)
   (>= (node-depth node-1)
       (node-depth node-2)))
-
-(solution-path (graph-search *galaxy-M35* *depth-first*))
-;;; -> No encuentra solucion por bucle infinito
-
-
-;; definimos la estrategia breadth-first
-(defparameter *breadth-first*
+      
+      
+;; definimos la estrategia depth-first
+(defparameter *depth-first*
   (make-strategy
-   :name 'breadth-first
-   :node-compare-p #'breadth-first-node-compare-p))
+   :name 'depth-first
+   :node-compare-p #'depth-first-node-compare-p))
+
+
+;;(solution-path (graph-search *galaxy-M35* *depth-first*))
+;;; -> No encuentra solucion por bucle infinito
 
 ;;breadth-first-node-compare-p (node-1 node-2)
 ;;
@@ -1015,8 +1010,15 @@
   (<= (node-depth node-1)
       (node-depth node-2)))
 
+
+;; definimos la estrategia breadth-first
+(defparameter *breadth-first*
+  (make-strategy
+   :name 'breadth-first
+   :node-compare-p #'breadth-first-node-compare-p))
+
 (solution-path (graph-search *galaxy-M35* *breadth-first*))
-;; -> (MALLORY KATRIL DAVION PROSERPINA)
+;; -> (MALLORY KATRIL DAVION PROSERPINA SIRTIS)
 
 ;;; 
 ;;;    END Exercise 10: depth-first / breadth-first
