@@ -44,7 +44,21 @@ sort_list([X|R], L2) :- sort_list(R,L), insert([X], L, L2).
 
 build_tree([], tree(1, nil, nil)).
 build_tree(X-_, tree(X, nil, nil)).
-build_tree([X-_|R], tree(1,Q,T)) :- T = build_tree(R, build_tree(X, U)).
+build_tree([X|R], tree(1,Q,T)) :- build_tree(X, Q), build_tree(R, T).
 
 
-%tree(1, X, build_tree(R, Tree))
+?-build_tree([p-0, a-6, g-7, p-9, t-2, 9-99], X).
+%X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
+%tree(1, tree(p, nil, nil), tree(1, tree(t, nil, nil), tree(9, nil, nil))))))
+%false
+?-build_tree([p-55, a-6, g-7, p-9, t-2, 9-99], X).
+%X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
+%tree(1, tree(p, nil, nil), tree(1, tree(t, nil, nil), tree(9, nil, nil))))))
+%False
+?-build_tree([p-55, a-6, g-2, p-1], X).
+%X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
+%tree(p, nil, nil))))
+%False
+?-build_tree([a-11, b-6, c-2, d-1], X).
+%X = tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), tree(1, tree(c, nil, nil),
+%tree(d, nil, nil))))
