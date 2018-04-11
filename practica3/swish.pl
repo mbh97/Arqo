@@ -12,17 +12,17 @@ pertenece(X, [_|Rs]) :- pertenece(X, Rs).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% pertenece(1, [2, 1, 3, 1]).
+	% pertenece(1, [2, 1, 3, 1]).
 		% true
 		% true
 		% false
-	%% pertenece(X, [2, 1, 3, 1]).
+	% pertenece(X, [2, 1, 3, 1]).
 		% X = 2
 		% X = 1
 		% X = 3
 		% X = 1
 		% false
-	%% pertenece(1, L).
+	% pertenece(1, L).
 		% L = [1|_1266]
 		% L = [_1084, 1|_1092]
 		% L = [_1084, _1090, 1|_1098]
@@ -47,7 +47,7 @@ pertenece_m(X, [_|L]) :- pertenece_m(X,L).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% pertenece_m(X, [2,[1,3],[1,[4,5]]]).
+	% pertenece_m(X, [2,[1,3],[1,[4,5]]]).
 		% X = 2
 		% X = 1
 		% X = 3
@@ -70,10 +70,10 @@ concatena([X|L1], L2, [X|L3]) :-
     concatena(L1, L2, L3).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% concatena([], [1, 2, 3], L).
+	% concatena([], [1, 2, 3], L).
 		% L = [1, 2, 3]
 		
-	%% concatena([1, 2, 3], [4, 5], L).
+	% concatena([1, 2, 3], [4, 5], L).
 		% L = [1, 2, 3, 4, 5]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% invierte(L, R)
@@ -89,11 +89,11 @@ invierte([X|R], L) :- invierte(R, IR), concatena(IR, [X], L).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% invierte([1, 2], L).
+	% invierte([1, 2], L).
 		% L = [2, 1]
-	%% invierte([], L).
+	% invierte([], L).
 		% L = []
-	%% invierte([1, 2], L).
+	% invierte([1, 2], L).
 		%L = [2, 1]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% menor(P, X-Q)
@@ -123,16 +123,16 @@ insert([X-P], [Z|L], R) :- not(menor(P,Z)), insert([X-P], L, CR), concatena([Z],
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% insert([a-6], [], X).
+	% insert([a-6], [], X).
 		% X = [a-6]
 		% false
-	%% insert([a-6], [p-0], X).
+	% insert([a-6], [p-0], X).
 		% X = [p-0, a-6]
 		% false
-	%% insert([a-6], [p-0, g-7], X).
+	% insert([a-6], [p-0, g-7], X).
 		% X = [p-0, a-6, g-7]
 		% false
-	%% insert([a-6], [p-0, g-7, t-2], X).
+	% insert([a-6], [p-0, g-7, t-2], X).
 		% X = [p-0, a-6, g-7, t-2]
 		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -151,10 +151,10 @@ elem_count(X, [Y|R], Xn) :- X\=Y, elem_count(X,R,Xn).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% elem_count(b, [b,a,b,a,b], Xn).
+	% elem_count(b, [b,a,b,a,b], Xn).
 		% Xn = 3
 		% false
-	%% elem_count(a, [b,a,b,a,b], Xn).
+	% elem_count(a, [b,a,b,a,b], Xn).
 		% Xn = 2
 		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,13 +173,13 @@ list_count([X|L1], L2, Xn) :- list_count(L1, L2, L), elem_count(X, L2, C), conca
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% list_count([b], [b,a,b,a,b], Xn).
+	%%list_count([b], [b,a,b,a,b], Xn).
 		% Xn = [b-3]
 		% false
-	%% list_count([b,a], [b,a,b,a,b], Xn).
+	% list_count([b,a], [b,a,b,a,b], Xn).
 		% Xn = [b-3, a-2]
 		% false
-	%% list_count([b,a,c], [b,a,b,a,b], Xn).
+	% list_count([b,a,c], [b,a,b,a,b], Xn).
 		% Xn = [b-3, a-2, c-0]
 		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -196,13 +196,13 @@ sort_list([X|R], L2) :- sort_list(R,L), insert([X], L, L2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ejemplos
-	%% sort_list([p-0, a-6, g-7, t-2], X).
+	% sort_list([p-0, a-6, g-7, t-2], X).
 		% X = [p-0, t-2, a-6, g-7]
 		% false
-	%% sort_list([p-0, a-6, g-7, p-9, t-2], X).
+	% sort_list([p-0, a-6, g-7, p-9, t-2], X).
 		% X = [p-0, t-2, a-6, g-7, p-9]
 		% false
-	%% sort_list([p-0, a-6, g-7, p-9, t-2, 9-99], X).
+	% sort_list([p-0, a-6, g-7, p-9, t-2, 9-99], X).
 		% X = [p-0, t-2, a-6, g-7, p-9, 9-99]
 		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,22 +218,34 @@ build_tree([], tree(1, nil, nil)).
 build_tree(X-_, tree(X, nil, nil)).
 build_tree([X|R], tree(1,Q,T)) :- build_tree(X, Q), build_tree(R, T), sort_list([X|R],_).
 
-%% Ejemplos
-	%% build_tree([p-0, a-6, g-7, p-9, t-2, 9-99], X).
+% Ejemplos
+	% build_tree([p-0, a-6, g-7, p-9, t-2, 9-99], X).
 		% X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
 		% tree(1, tree(p, nil, nil), tree(1, tree(t, nil, nil), tree(9, nil, nil))))))
 		% false
-	%% build_tree([p-55, a-6, g-7, p-9, t-2, 9-99], X).
+	% build_tree([p-55, a-6, g-7, p-9, t-2, 9-99], X).
 		% X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
 		% tree(1, tree(p, nil, nil), tree(1, tree(t, nil, nil), tree(9, nil, nil))))))
 		% False
-	%% build_tree([p-55, a-6, g-2, p-1], X).
+	% build_tree([p-55, a-6, g-2, p-1], X).
 		% X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
 		% tree(p, nil, nil))))
 		% False
-	%% build_tree([a-11, b-6, c-2, d-1], X).
+	% build_tree([a-11, b-6, c-2, d-1], X).
 		% X = tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), tree(1, tree(c, nil, nil),
 		% tree(d, nil, nil))))
 		% False
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%
+%% 
+
+encode_elem(E, [], tree(E, nil, nil)).
+encode_elem(E, [0], tree(1, tree(E,nil,nil), _)).
+encode_elem(E, X, tree(1, _, D)) :- encode_elem(E, A, D), concatena([1], A, X).
+
+
+encode_list([], [], _).
+encode_list([E|R], X, T) :- encode_list(R, A, T), encode_elem(E, B, T), concatena(A, [B], X).
