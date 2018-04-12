@@ -10,8 +10,8 @@
 %% Returns: true o false,
 %% 			X, L para los que se satisface
 
-pertenece(X, [X|_]).
-pertenece(X, [_|Rs]) :- pertenece(X, Rs).
+pertenece(X, [X|_]). % X = primer elemento de L
+pertenece(X, [_|Rs]) :- pertenece(X, Rs). % RS = evaluacion del resto de L
 
 %%%
 %% EJEMPLOS
@@ -44,9 +44,9 @@ pertenece(X, [_|Rs]) :- pertenece(X, Rs).
 %% Returns: true o false,
 %% 			X, L para los que se satisface
 
-pertenece_m(X, [X|_]) :- X \= [_|_]. 
-pertenece_m(X, [E|_]) :- pertenece_m(X,E).
-pertenece_m(X, [_|L]) :- pertenece_m(X,L).
+pertenece_m(X, [X|_]) :- X \= [_|_]. % X\=lista pertenece a L si X = primer elemento de L
+pertenece_m(X, [E|_]) :- pertenece_m(X,E). % evalua X en E (elemento o lista)
+pertenece_m(X, [_|L]) :- pertenece_m(X,L). % si X no pertenece a E, evalua X en el resto
 
 %%%
 %% EJEMPLOS
@@ -70,10 +70,9 @@ pertenece_m(X, [_|L]) :- pertenece_m(X,L).
 %%	L3: concatenacion de L1 y L2
 %% Returns: evaluacion de L3
 
-concatena([], L, L).
-concatena([X|L1], L2, [X|L3]) :-
-    concatena(L1, L2, L3).
-
+concatena([], L, L). % si L1=[], no se realizan cambios
+concatena([X|L1], L2, [X|L3]) :- % se concatena el primer elemento a L3
+    concatena(L1, L2, L3). % L3 = concatenacion del resto de elementos
 %%%
 %% EJEMPLOS
 	% concatena([], [1, 2, 3], L).
@@ -90,8 +89,10 @@ concatena([X|L1], L2, [X|L3]) :-
 %%	R: lista inversa de L
 %% Returns: evaluacion de R
 
-invierte([],[]).
-invierte([X|R], L) :- invierte(R, IR), concatena(IR, [X], L).
+invierte([],[]). % si L=[], el inverso es R=[]
+invierte([X|R], L) :- 
+    invierte(R, IR), % IR es el inverso del resto de L
+    concatena(IR, [X], L). % L es la concatenacion de IR a los elementos de R
 
 %%%
 %% EJEMPLOS
@@ -124,10 +125,18 @@ menor(P, _-Q) :- P<Q.
 %%	R: resultado de la inserción
 %% Returns: evaluacion de R
 
-insert([],L,L).
-insert([X-P], L, R) :- L=[], concatena([X-P], L, R).
-insert([X-P], [Z|T], R) :- menor(P,Z), concatena([X-P],[Z], CR), concatena(CR, T, R).
-insert([X-P], [Z|L], R) :- not(menor(P,Z)), insert([X-P], L, CR), concatena([Z],CR,R).
+insert([],L,L). % la insercion de una lista vacia no produce cambios
+insert([X-P], L, R) :- 
+    L=[],
+    concatena([X-P], L, R). % R = lista con el elemento X-P
+insert([X-P], [Z|T], R) :- 
+    menor(P,Z), % si X-P va en una posicion anterior a Z
+    concatena([X-P],[Z], CR), % CR = concatenacion de X-P con la lista formada por Z
+    concatena(CR, T, R). % R = concatenacion de CR con el resto de elementos
+insert([X-P], [Z|L], R) :- 
+    not(menor(P,Z)), % si X-P va en una posicion anterior a Z
+    insert([X-P], L, IR), % IR = insercion de [X-P] en el resto de elementos
+    concatena([Z],IR,R). % R = concatenacion de los elemento previos con IR
 
 %%%
 %% EJEMPLOS
@@ -157,9 +166,13 @@ insert([X-P], [Z|L], R) :- not(menor(P,Z)), insert([X-P], L, CR), concatena([Z],
 %%	Xn: veces que aparece el elemento X
 %% Returns: evaluacion de Xn					
 
-elem_count(_, [], 0).
-elem_count(X, [X|R], Xn) :- elem_count(X, R, A), Xn is(1+A).
-elem_count(X, [Y|R], Xn) :- X\=Y, elem_count(X,R,Xn).
+elem_count(_, [], 0). % si L=[], Xn = 0
+elem_count(X, [X|R], Xn) :- % si X = primer elemento
+    elem_count(X, R, A), % A = veces de X en R
+    Xn is(1+A). % Xn = 1+A
+elem_count(X, [Y|R], Xn) :-
+    X\=Y, % si X\=primer elemento
+    elem_count(X,R,Xn). % Xn = veces de X en el resto
 
 %%%
 %% EJEMPLOS
@@ -182,8 +195,11 @@ elem_count(X, [Y|R], Xn) :- X\=Y, elem_count(X,R,Xn).
 %%	L3: lista contador 
 %% Returns: evaluacion de L3					
 	
-list_count([], _, []).
-list_count([X|L1], L2, Xn) :- list_count(L1, L2, L), elem_count(X, L2, C), concatena([X-C],L,Xn).
+list_count([], _, []). % si L1=[], L3=[]
+list_count([X|L1], L2, Xn) :- 
+    list_count(L1, L2, L),
+    elem_count(X, L2, C), % C = ocurrencias de cada elemento
+    concatena([X-C],L,Xn). % Xn = concatenacion de [elemento-ocurrencia]
 
 %%%
 %% EJEMPLOS
@@ -207,8 +223,10 @@ list_count([X|L1], L2, Xn) :- list_count(L1, L2, L), elem_count(X, L2, C), conca
 %%	L2: lista de elementos ordenada
 %% Returns: evaluacion de L2
 
-sort_list([], []).
-sort_list([X|R], L2) :- sort_list(R,L), insert([X], L, L2). 
+sort_list([], []). % si L1=[], L2=[]
+sort_list([X|R], L2) :- 
+    sort_list(R,L), 
+    insert([X], L, L2). % L2 = insercion de cada elemento [X] en L
 
 %%%
 %% EJEMPLOS
@@ -233,10 +251,18 @@ sort_list([X|R], L2) :- sort_list(R,L), insert([X], L, L2).
 %% Returns: evaluacion de Tree
 
 
-build_tree(X-_, tree(X,nil,nil)).
-build_tree([X|R], tree(1,I,nil)) :- R=[], build_tree(X,I).
-build_tree([X1,X2|R], tree(1,I,D)) :- R=[], build_tree(X1,I), build_tree(X2,D).
-build_tree([X|R], tree(1,I,D)) :- R=[_,_|_], build_tree(X,I), build_tree(R,D).
+build_tree(X-_, tree(X,nil,nil)). % si List no es lista, Tree = tree(X,nil,nil)
+build_tree([X|R], tree(1,I,nil)) :- % Tree = tree(1,I,nil)
+    R=[], 
+    build_tree(X,I). % I = tree(x,nil,nil), x nombre
+build_tree([X1,X2|R], tree(1,I,D)) :- % Tree = tree(1,I,D)
+    R=[], 
+    build_tree(X1,I), % I = tree(x1,nil,nil), x1 nombre
+    build_tree(X2,D). % D = tree(x2,nil,nil), x2 nombre
+build_tree([X|R], tree(1,I,D)) :- % Tree = tree(1,I,D)
+    R=[_,_|_], % si R tiene mas de dos elementos
+    build_tree(X,I), % I = tree(x,nil,nil), x nombre
+    build_tree(R,D). % D = evaluacion del resto de elementos
 
 %%%
 %% EJEMPLOS
@@ -270,9 +296,11 @@ build_tree([X|R], tree(1,I,D)) :- R=[_,_|_], build_tree(X,I), build_tree(R,D).
 %%	Tree: arbol de Huffman
 %% Returns: evaluacion de X2
 
-encode_elem(E, [], tree(E, nil, nil)).
-encode_elem(E, [0], tree(1, tree(E,nil,nil), _)).
-encode_elem(E, X, tree(1, _, D)) :- encode_elem(E, A, D), concatena([1], A, X).
+encode_elem(E, [], tree(E, nil, nil)). % si E = raiz de Tree, X2 =[]
+encode_elem(E, [0], tree(1, tree(E,nil,nil), _)). % si E =  raiz del hijo derecho de Tree, X2=[]
+encode_elem(E, X, tree(1, _, D)) :- 
+    encode_elem(E, A, D), % A = evaluacion de E en D
+    concatena([1], A, X). % X = concatenacion de [1] a A
 
 %%%
 %% EJEMPLOS
@@ -300,12 +328,15 @@ encode_elem(E, X, tree(1, _, D)) :- encode_elem(E, A, D), concatena([1], A, X).
 %% basandose en la estructura del arbol Tree
 %% Input:
 %%	L1: lista a codificar
-%%	l2: lista codificada
+%%	L2: lista codificada
 %%	Tree: arbol de Huffman
 %% Returns: evaluacion de L2
 
-encode_list([], [], _).
-encode_list([E|R], X, T) :- encode_list(R, A, T), encode_elem(E, B, T), concatena(A, [B], X).
+encode_list([], [], _). % si L1=[]. L2=[]
+encode_list([E|R], X, T) :- 
+    encode_list(R, A, T), % A = evalucion del resto de elementos de L1 en T 
+    encode_elem(E, B, T), % B = evaluacion de E en T
+    concatena(A, [B], X). % X = concatenacion de A en la lista [B]
 
 %%%
 %% EJEMPLOS
