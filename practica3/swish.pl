@@ -113,7 +113,7 @@ invierte([X|R], L) :-
 %%						Q es la posicion a comparar
 %% Returns: true o false
 
-menor(P, _-Q) :- P<Q.
+menor(P, _-Q) :- P=<Q.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% insert(X-P, L, R)
@@ -336,7 +336,7 @@ encode_list([], [], _). % si L1=[]. L2=[]
 encode_list([E|R], X, T) :- 
     encode_list(R, A, T), % A = evalucion del resto de elementos de L1 en T 
     encode_elem(E, B, T), % B = evaluacion de E en T
-    concatena(A, [B], X). % X = concatenacion de A en la lista [B]
+    concatena([B], A, X). % X = concatenacion de A en la lista [B]
 
 %%%
 %% EJEMPLOS
@@ -366,10 +366,11 @@ encode_list([E|R], X, T) :-
 %%	L2: lista codificada
 %% Returns: evaluacion de L2
 
-
+dictionary([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]).
+encode([],nil).	
+encode(L,X) :- dictionary(D), list_count(D, L, LP), sort_list(LP, LC), invierte(LC, LO), build_tree(LO, T), encode_list(L, X, T).
 %%%
 %% EJEMPLOS
-	% dictionary([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]).
 	% encode([i,n,t,e,l,i,g,e,n,c,i,a,a,r,t,i,f,i,c,i,a,l],X).
 		% X = [[0], [1, 1, 1, 0], [1, 1, 0], [1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 0], [0], [1, 1, 1,
 		% 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0], [1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 0], [0], [1,
