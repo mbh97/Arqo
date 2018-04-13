@@ -13,27 +13,6 @@
 pertenece(X, [X|_]). % X = primer elemento de L
 pertenece(X, [_|Rs]) :- pertenece(X, Rs). % RS = evaluacion del resto de L
 
-%%%
-%% EJEMPLOS
-	% pertenece(1, [2, 1, 3, 1]).
-		% true
-		% true
-		% false
-	% pertenece(X, [2, 1, 3, 1]).
-		% X = 2
-		% X = 1
-		% X = 3
-		% X = 1
-		% false
-	% pertenece(1, L).
-		% L = [1|_1266]
-		% L = [_1084, 1|_1092]
-		% L = [_1084, _1090, 1|_1098]
-		% L = [_1084, _1090, _1096, 1|_1104]
-		% L = [_1084, _1090, _1096, _1102, 1|_1110]
-		% L = [_1084, _1090, _1096, _1102, _1108, 1|_1116]
-		% L = [_1084, _1090, _1096, _1102, _1108, _1114, 1|_1122]
-		% etc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% pertenece_m(X, L)
 %% Comprueba si un elemento X esta en una lista L, 
@@ -48,16 +27,6 @@ pertenece_m(X, [X|_]) :- X \= [_|_]. % X\=lista pertenece a L si X = primer elem
 pertenece_m(X, [E|_]) :- pertenece_m(X,E). % evalua X en E (elemento o lista)
 pertenece_m(X, [_|L]) :- pertenece_m(X,L). % si X no pertenece a E, evalua X en el resto
 
-%%%
-%% EJEMPLOS
-	% pertenece_m(X, [2,[1,3],[1,[4,5]]]).
-		% X = 2
-		% X = 1
-		% X = 3
-		% X = 1
-		% X = 4
-		% X = 5
-		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,13 +42,7 @@ pertenece_m(X, [_|L]) :- pertenece_m(X,L). % si X no pertenece a E, evalua X en 
 concatena([], L, L). % si L1=[], no se realizan cambios
 concatena([X|L1], L2, [X|L3]) :- % se concatena el primer elemento a L3
     concatena(L1, L2, L3). % L3 = concatenacion del resto de elementos
-%%%
-%% EJEMPLOS
-	% concatena([], [1, 2, 3], L).
-		% L = [1, 2, 3]
-		
-	% concatena([1, 2, 3], [4, 5], L).
-		% L = [1, 2, 3, 4, 5]
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% invierte(L, R)
 %% Funcion que se satisface si R contiene los elementos
@@ -94,14 +57,6 @@ invierte([X|R], L) :-
     invierte(R, IR), % IR es el inverso del resto de L
     concatena(IR, [X], L). % L es la concatenacion de IR a los elementos de R
 
-%%%
-%% EJEMPLOS
-	% invierte([1, 2], L).
-		% L = [2, 1]
-	% invierte([], L).
-		% L = []
-	% invierte([1, 2], L).
-		% L = [2, 1]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -113,7 +68,7 @@ invierte([X|R], L) :-
 %%						Q es la posicion a comparar
 %% Returns: true o false
 
-menor(P, _-Q) :- P<Q.
+menor(P, _-Q) :- P=<Q.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% insert(X-P, L, R)
@@ -138,20 +93,6 @@ insert([X-P], [Z|L], R) :-
     insert([X-P], L, IR), % IR = insercion de [X-P] en el resto de elementos
     concatena([Z],IR,R). % R = concatenacion de los elemento previos con IR
 
-%%%
-%% EJEMPLOS
-	% insert([a-6], [], X).
-		% X = [a-6]
-		% false
-	% insert([a-6], [p-0], X).
-		% X = [p-0, a-6]
-		% false
-	% insert([a-6], [p-0, g-7], X).
-		% X = [p-0, a-6, g-7]
-		% false
-	% insert([a-6], [p-0, g-7, t-2], X).
-		% X = [p-0, a-6, g-7, t-2]
-		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 4
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -174,14 +115,6 @@ elem_count(X, [Y|R], Xn) :-
     X\=Y, % si X\=primer elemento
     elem_count(X,R,Xn). % Xn = veces de X en el resto
 
-%%%
-%% EJEMPLOS
-	% elem_count(b, [b,a,b,a,b], Xn).
-		% Xn = 3
-		% false
-	% elem_count(a, [b,a,b,a,b], Xn).
-		% Xn = 2
-		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 4.2
 %%
@@ -201,17 +134,6 @@ list_count([X|L1], L2, Xn) :-
     elem_count(X, L2, C), % C = ocurrencias de cada elemento
     concatena([X-C],L,Xn). % Xn = concatenacion de [elemento-ocurrencia]
 
-%%%
-%% EJEMPLOS
-	% list_count([b], [b,a,b,a,b], Xn).
-		% Xn = [b-3]
-		% false
-	% list_count([b,a], [b,a,b,a,b], Xn).
-		% Xn = [b-3, a-2]
-		% false
-	% list_count([b,a,c], [b,a,b,a,b], Xn).
-		% Xn = [b-3, a-2, c-0]
-		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 5
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -228,17 +150,6 @@ sort_list([X|R], L2) :-
     sort_list(R,L), 
     insert([X], L, L2). % L2 = insercion de cada elemento [X] en L
 
-%%%
-%% EJEMPLOS
-	% sort_list([p-0, a-6, g-7, t-2], X).
-		% X = [p-0, t-2, a-6, g-7]
-		% false
-	% sort_list([p-0, a-6, g-7, p-9, t-2], X).
-		% X = [p-0, t-2, a-6, g-7, p-9]
-		% false
-	% sort_list([p-0, a-6, g-7, p-9, t-2, 9-99], X).
-		% X = [p-0, t-2, a-6, g-7, p-9, 9-99]
-		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 6
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -264,24 +175,6 @@ build_tree([X|R], tree(1,I,D)) :- % Tree = tree(1,I,D)
     build_tree(X,I), % I = tree(x,nil,nil), x nombre
     build_tree(R,D). % D = evaluacion del resto de elementos
 
-%%%
-%% EJEMPLOS
-	% build_tree([p-0, a-6, g-7, p-9, t-2, 9-99], X).
-		% X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
-		% tree(1, tree(p, nil, nil), tree(1, tree(t, nil, nil), tree(9, nil, nil))))))
-		% false
-	% build_tree([p-55, a-6, g-7, p-9, t-2, 9-99], X).
-		% X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
-		% tree(1, tree(p, nil, nil), tree(1, tree(t, nil, nil), tree(9, nil, nil))))))
-		% False
-	% build_tree([p-55, a-6, g-2, p-1], X).
-		% X = tree(1, tree(p, nil, nil), tree(1, tree(a, nil, nil), tree(1, tree(g, nil, nil),
-		% tree(p, nil, nil))))
-		% False
-	% build_tree([a-11, b-6, c-2, d-1], X).
-		% X = tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), tree(1, tree(c, nil, nil),
-		% tree(d, nil, nil))))
-		% False
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 7
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -302,24 +195,6 @@ encode_elem(E, X, tree(1, _, D)) :-
     encode_elem(E, A, D), % A = evaluacion de E en D
     concatena([1], A, X). % X = concatenacion de [1] a A
 
-%%%
-%% EJEMPLOS
-	% encode_elem(a, X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), 
-	% tree(1, tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [0]
-		% false
-	% encode_elem(b, X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), 
-	% tree(1, tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [1, 0]
-		% false
-	% encode_elem(c, X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), 
-	% tree(1, tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [1, 1, 0]
-		% false
-	% encode_elem(d, X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), 
-	% tree(1, tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [1, 1, 1]
-		% false
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 7.2
 %%
@@ -336,25 +211,8 @@ encode_list([], [], _). % si L1=[]. L2=[]
 encode_list([E|R], X, T) :- 
     encode_list(R, A, T), % A = evalucion del resto de elementos de L1 en T 
     encode_elem(E, B, T), % B = evaluacion de E en T
-    concatena(A, [B], X). % X = concatenacion de A en la lista [B]
+    concatena([B], A, X). % X = concatenacion de A en la lista [B]
 
-%%%
-%% EJEMPLOS
-	% encode_list([a], X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), tree(1,
-	% tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [[0]]
-		% false
-	% encode_list([a,a], X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil), tree(1,
-	% tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [[0], [0]]
-		% false
-	% encode_list([a,d,a], X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil),
-	% tree(1, tree(c, nil, nil), tree(d, nil, nil))))).
-		% X = [[0], [1, 1, 1], [0]]
-		% false
-	% encode_list([a,d,a,q], X, tree(1, tree(a, nil, nil), tree(1, tree(b, nil, nil),
-	% tree(1, tree(c, nil, nil), tree(d, nil, nil))))).
-		% false.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Ejercicio 8
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -366,21 +224,16 @@ encode_list([E|R], X, T) :-
 %%	L2: lista codificada
 %% Returns: evaluacion de L2
 
+dictionary([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]).
+encode([],nil).	
+encode(L,X) :- 
+	dictionary(D), 
+	list_count(D, L, LP), 
+	sort_list(LP, LC), 
+	invierte(LC, LO), 
+	build_tree(LO, T), 
+	encode_list(L, X, T).
 
-%%%
-%% EJEMPLOS
-	% dictionary([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]).
-	% encode([i,n,t,e,l,i,g,e,n,c,i,a,a,r,t,i,f,i,c,i,a,l],X).
-		% X = [[0], [1, 1, 1, 0], [1, 1, 0], [1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 0], [0], [1, 1, 1,
-		% 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0], [1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 0], [0], [1,
-		% 0], [1, 0], [1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 0], [0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-		% [0], [1, 1, 1, 1, 1, 1, 0], [0], [1, 0], [1, 1, 1, 1, 0]]
-		% False
-	% encode([i,a],X).
-		% X = [[0], [1, 0]]
-		% False
-	% encode([i,2,a],X).
-		% false
 
 
 
