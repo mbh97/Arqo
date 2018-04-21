@@ -169,6 +169,7 @@
 
 ;;; Partida entre dos humanos a partir de una posicion determinada para analisis detallado
 ;;; Se fuerza la posicion de inicio para jugar a partir de ella (ejemplo Pag.5 del enunciado)
+;;; CUIDADO, si se descomentan estas lineas la posicion inicial cambia y el juego puede no funcionar bien.
 ;;;(setq mi-posicion (list '(1 0 1 3 2 4 0) (reverse '(12 0 3 5 2 1 2))))
 ;;;(setq mi-posicion (list '(1 0 1 3 2 4 7) (reverse '(5 0 3 5 2 1 2))))
 ;;;(setq mi-posicion (list '(0 3 1 1 1 8 8) (reverse '(4 0 8 2 0 0 0))))

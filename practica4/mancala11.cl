@@ -12,8 +12,6 @@
 	   :estado
 	   :estado-debe-pasar-turno
 	   :estado-lado-sgte-jugador
-	   :estado-lado-sgte-jugador
-	   :estado-tablero
 	   :estado-tablero
 	   :f-j-humano
 	   :generar-sucesores
@@ -21,10 +19,8 @@
 	   :get-pts
 	   :get-tot
 	   :juego-terminado-p
-	   :juego-terminado-p
 	   :jugador
 	   :jugador-nombre
-	   :lado-contrario
 	   :lado-contrario
 	   :list-lado
 	   :make-jugador
@@ -45,9 +41,13 @@
 ;      (sb-ext:with-timeout ,seconds ,@body)
 ;      (sb-ext:timeout (e) ,@timeout-body))))
 
-;; Allegro
+;; Allegro 6
 (defmacro my-with-timeout  ((seconds &body timeout-body) &body body)
-   `(sys:with-timeout (,seconds ,@timeout-body) ,@body))
+   `(mp:with-timeout (,seconds ,@timeout-body) ,@body))
+
+;; Allegro 10
+;(defmacro my-with-timeout  ((seconds &body timeout-body) &body body)
+;  `(sys:with-timeout (,seconds ,@timeout-body) ,@body))
 
 ;;; ==========================================================================================
 ;;; PRACTICAS IA. PRACTICA 4 (JUEGOS)
@@ -131,19 +131,19 @@
 (defvar *kalaha*           t   ) ; t=con hoyo almacen (Kalaha), nil=sin Kalaha
 (defvar *inicio-siembra*   1   ) ; posicion desde la que se empieza a sembrar
 (defvar *m6*               nil ) ; t=Mancala5
-(defparameter *2-sentidos*       nil ) ; Switch doble sentido: t=movimiento en ambos sentidos, nil=sentido unico
-(defparameter *verb*             t   ) ; Switch verbose: imprime comentarios sobre evolucion del programa
-(defparameter *verjugada*        t   ) ; Switch para ver cada jugada (nil = reduce print, p.e. en juego automatico
+(defvar *2-sentidos*       nil ) ; Switch doble sentido: t=movimiento en ambos sentidos, nil=sentido unico
+(defvar *verb*             t   ) ; Switch verbose: imprime comentarios sobre evolucion del programa
+(defvar *verjugada*        t   ) ; Switch para ver cada jugada (nil = reduce print, p.e. en juego automatico
                                  ; y en su lugar saca una barra para seguir la evolucion de la actividad)
-(defparameter *vermarcador*      t   ) ; Switch para ver el marcador si *verjugada*=nil
+(defvar *vermarcador*      t   ) ; Switch para ver el marcador si *verjugada*=nil
 (defvar *maxjugadas*       60  ) ; num maximo de jugadas antes de dar la partida por tablas
 (defvar *tablas*           nil ) ; indicador de tablas
 (defvar *k*   (if *kalaha* 1 0)) ; variable auxiliar para contar o no con Kalaha
 (defvar *max-tengo*        4   ) ; maximo numero de fichas en ultimo hoyo para poder capturar
-(defparameter *tournament*       nil ) ; t=juego llamado desde torneo, nil=juego individual
-(defparameter *marcador*  (make-array '(2 2) :initial-element 0))
-(defparameter *prof*             0   ) ; Profundidad al expandir nodo
-(defparameter *tablero-aux*      nil ) ; Tablero auxiliar para uso discrecional del alumno (solo mediante funciones especificas)
+(defvar *tournament*       nil ) ; t=juego llamado desde torneo, nil=juego individual
+(defvar *marcador*  (make-array '(2 2) :initial-element 0))
+(defvar *prof*             0   ) ; Profundidad al expandir nodo
+(defvar *tablero-aux*      nil ) ; Tablero auxiliar para uso discrecional del alumno (solo mediante funciones especificas)
 (defconstant +max-val+   99999 ) ; Valor maximo para negamax y otros usos
 (defconstant +min-val+  -99999 ) ; Valor minimo para negamax y otros usos
 
@@ -158,11 +158,12 @@
 (defvar +fmt2+ (concatenate 'string "~"     (format nil "~A" (* *long-fila* 3)) "{ ~}"))
 
 (defvar *hist-1*)             (defvar *hist-2*)                (defvar *avge1*)              (defvar *avge2*)
-(defvar *njugada*)            ;(defparameter *jdr-humano*)            (defparameter *jdr-human2*)         (defparameter *jdr-aleatorio*)
-;(defparameter *jdr-1st-opt*)        (defparameter *jdr-last-opt*)          (defparameter *jdr-nmx-bueno*)      (defparameter *jdr-nmx-regular*)
-;(defparameter *jdr-erroneo*)        (defparameter *jdr-nmx-eval-aleatoria*)
-(defparameter *logfile* t)          (defvar *timeout* 20)
-(defparameter *thumano* 900)        (defparameter *debug-level* 2)         (defparameter *debug-nmx* nil)
+(defvar *njugada*)            ;(defvar *jdr-humano*)            (defvar *jdr-human2*)         (defvar *jdr-aleatorio*)
+;(defvar *jdr-1st-opt*)        (defvar *jdr-last-opt*)          (defvar *jdr-nmx-bueno*)      (defvar *jdr-nmx-regular*)
+;(defvar *jdr-erroneo*)        (defvar *jdr-nmx-eval-aleatoria*)
+(defvar *logfile* t)          (defvar *timeout* 20)
+(defvar *thumano* 900)        (defvar *debug-level* 2)         (defvar *debug-nmx* nil)
+(defvar *boaster-remoto*)     (defvar *challenger-remoto*)
 
 ;;; Solo para versiones superiores a ACL 6.2
 ;;; Esto deberia funcionar, pero falla en ACL 6.2
