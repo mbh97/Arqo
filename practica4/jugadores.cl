@@ -154,8 +154,23 @@
 (setq *vermarcador* t)         ; Activa la visualizacion del marcador
 (setq *debug-nmx*   t)         ; Desactiva debuging de negamax
 
-(partida 1 2 (list *jdr-nmx-Regular* *jdr-nmx-Regular*))
-(partida 1 2 (list *jdr-aleatorio* *jdr-aleatorio*))
+;;(partida 1 2 (list *jdr-nmx-Regular* *jdr-nmx-Regular*))
+;;(partida 1 2 (list *jdr-aleatorio* *jdr-aleatorio*))
+
+(defun heuristica (estado) ; función de evaluación heurística a implementar
+  (let ((tablero (estado-tablero estado)) 
+        (enMilado (estado-lado-sgte-jugador estado))
+        (enLadoCont (lado-contrario (estado-lado-sgte-jugador estado))))
+  (-(*(get-fichas tablero enMilado 6) (get-pts enMilado)) ; puntos en mi lado 
+    (*(get-fichas tablero enLadoCont 6) (get-pts enLadoCont))))) ; puntos en lado contrario
+
+(defvar *blancamaria* (make-jugador
+                        :nombre   '|BLANCAMARIA|
+                        :f-juego  #'f-j-nmx
+                        :f-eval   #'heuristica))
+
+(partida 1 2 (list *blancamaria* *jdr-nmx-Regular*))
+
 
 ;;; Ajustes para facilitar el seguimiento paso a paso (pag. 11). Reduzcase el nivel de
 ;;; detalle cuando se vaya adquiriendo práctica.

@@ -35,15 +35,14 @@
 (in-package mancala)
 
 ;; SBL
-;(declaim #+sbcl(sb-ext:muffle-conditions style-warning)))
-;(defmacro my-with-timeout ((seconds &body timeout-body) &body body)
-;  `(handler-case
-;      (sb-ext:with-timeout ,seconds ,@body)
-;      (sb-ext:timeout (e) ,@timeout-body))))
-
+(declaim #+sbcl(sb-ext:muffle-conditions style-warning))
+(defmacro my-with-timeout ((seconds &body timeout-body) &body body)
+  `(handler-case
+      (sb-ext:with-timeout ,seconds ,@body)
+      (sb-ext:timeout (e) ,@timeout-body)))
 ;; Allegro 6
-(defmacro my-with-timeout  ((seconds &body timeout-body) &body body)
-   `(mp:with-timeout (,seconds ,@timeout-body) ,@body))
+;;(defmacro my-with-timeout  ((seconds &body timeout-body) &body body)
+;;   `(mp:with-timeout (,seconds ,@timeout-body) ,@body))
 
 ;; Allegro 10
 ;(defmacro my-with-timeout  ((seconds &body timeout-body) &body body)
