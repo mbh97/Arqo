@@ -1,7 +1,8 @@
-(defpackage :grupo01pareja061Oe2204 ; se declara un paquete lisp que usa common-lisp
+(defpackage :grupo01pareja061Oe2304 ; se declara un paquete lisp que usa common-lisp
   (:use :common-lisp :mancala)      ; y mancala, y exporta la función de evaluación
   (:export :heuristica :*alias*))   ; heurística y un alias para el torneo
-(in-package grupo01pareja061Oe2204)
+(in-package grupo01pareja061Oe2304)
+
 
 
 (defun heuristica (estado) ; función de evaluación heurística a implementar
