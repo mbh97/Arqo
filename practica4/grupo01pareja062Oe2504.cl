@@ -1,7 +1,7 @@
-(defpackage :grupo01pareja061Oe2504 ; se declara un paquete lisp que usa common-lisp
+(defpackage :grupo01pareja062Oe2504 ; se declara un paquete lisp que usa common-lisp
   (:use :common-lisp :mancala)      ; y mancala, y exporta la función de evaluación
   (:export :heuristica :*alias*))   ; heurística y un alias para el torneo
-(in-package grupo01pareja061Oe2504)
+(in-package grupo01pareja062Oe2504)
 
 
 (defun numVacias-aux (tablero lado n)
@@ -21,7 +21,9 @@
            (misFichas (cuenta-fichas tablero enMilado 0))
            (misVacias (numVacias tablero enMilado))
            (miKalaha (get-fichas tablero enMilado 6)))
-     (+ (* misFichas 0.6)(* misVacias 0.4) (* miKalaha 0.7))))
+     (+ (* misFichas 0.5)(* misVacias 0.25) (* miKalaha 0.8))))
 
-(defvar *alias* '|ConTuFiguraQueMeAtrapaTrapa|) ; alias que aparecerá en el ranking
+
+
+(defvar *alias* '|AndasEnMiCabezaNenaATodasHoras|) ; alias que aparecerá en el ranking
 

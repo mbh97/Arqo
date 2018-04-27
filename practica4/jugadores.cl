@@ -156,24 +156,24 @@
 
 ;;(partida 1 2 (list *jdr-nmx-Regular* *jdr-nmx-Regular*))
 ;;(partida 1 2 (list *jdr-aleatorio* *jdr-aleatorio*))
-
-(defun numVacias (tablero lado)
-	(numVacias-aux tablero lado 0))
 	
 (defun numVacias-aux( tablero lado n)
-	(cond ((eq n 6) 0)
+	(cond ((>= n 6) 0)
 		  ((eq 0 (get-fichas tablero lado n))
 		  		(+ (numVacias-aux tablero lado (+ n 1)) 1))
 		  (numVacias-aux tablero lado (+ n 1))))
 
+(defun numVacias (tablero lado)
+  (numVacias-aux tablero lado 0))
+
 ; Necesito saber mis fichas, numero de casillas vacias, puntos en kalaha 
 (defun heuristica (estado)
-	(let* ((tablero (estado-tablero estado)) 
-  	       (enMilado (estado-lado-sgte-jugador estado))
-  	       (misFichas (cuenta-fichas tablero enMilado 5))
-  	       (misVacias (numVacias tablero enMilado))
-  	       (miKalaha (get-fichas tablero enMilado 6)))
-  	 (+ (* misFichas 0.6) (* misVacias 0.4) (* miKalaha 0.7))))
+  (let* ((tablero (estado-tablero estado)) 
+           (enMilado (estado-lado-sgte-jugador estado))
+           (misFichas (cuenta-fichas tablero enMilado 5))
+           (misVacias (numVacias tablero enMilado))
+           (miKalaha (get-fichas tablero enMilado 6)))
+     (+ (* misFichas 0.6) (* misVacias 0.4) (* miKalaha 0.7))))
 
 (defvar *blancamaria* (make-jugador
                         :nombre   '|BLANCAMARIA|
