@@ -1,0 +1,7 @@
+#!/bin/sh
+
+replacementline=$(echo "(defvar *ponderaciones* '(($1 $2 $3 $4 $5 $6) ($7 $8 $9 $10 $11 $12)))")
+sedcommand="950s/.*/${replacementline}/"
+sed -i "$sedcommand" pruebasmancala.cl
+OUTPUT=$(sbcl --noinform --disable-ldb --script pruebasmancala.cl)
+echo $OUTPUT
