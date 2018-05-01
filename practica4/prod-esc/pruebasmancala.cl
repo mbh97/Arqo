@@ -947,7 +947,7 @@
 ;;(partida 1 2 (list *jdr-nmx-Regular* *jdr-nmx-Regular*))
 ;;(partida 1 2 (list *jdr-aleatorio* *jdr-aleatorio*))
 
-(defvar *ponderaciones* '((0.4347484384791186 0.7521706482724171 0.09060119128273336 0.07454330354231464 0.7451938923330472 0.8403581790065413) (0.4503785350978352 0.9123391660054984 0.7793765735546566 0.7001298415656689 0.7818736098521626 0.2743279165836884)))
+(defvar *ponderaciones* '((0.2999055484142793 0.6053294954914216 0.9345803128378108 0.9455513873603285 0.7903977171315674 0.20317639647910124) (0.5351522928865313 0.22510994542123797 0.1582149488992568 0.3738972838499589 0.31664472074570116 0.34185555983974947)))
 
 (defun list-fichas (tablero lado n)
 	(let ((m (+ 1 n)))
@@ -969,7 +969,7 @@
            (susfichas (list-fichas tablero enLadoCont 0)))
            
            (+ (prod-esc-rec misfichas (first ponderaciones)) 
-           	  (prod-esc-rec misfichas (second ponderaciones)))))
+           	  (prod-esc-rec susfichas (second ponderaciones)))))
 
 
 (defvar *blancamaria* (make-jugador
@@ -997,7 +997,38 @@
  		 (print '-1000))
    		 (t (media jugador *jdr-nmx-eval-aleatoria* nveces))))
 
-(evaluador *blancamaria* 35000)
+;(evaluador *blancamaria* 100)
+
+
+(defun gana-regular(jugador)
+  (if (and (< 0 (partida 0 2 (list jugador *jdr-nmx-Regular*)))
+      	   (> 0 (partida 0 2 (list *jdr-nmx-Regular* jugador))))
+    			1 
+    0))
+
+
+(defun veces-gana (jug1 jug2 nveces)
+	(cond ((= nveces 0) 0)
+		  ((> (partida 0 2 (list jug1 jug2)) 0) (+ (veces-gana jug1 jug2 (- nveces 1)) 1))
+		  (t (veces-gana jug1 jug2 (- nveces 1)))))
+
+;JUGADOR 1 ERES TU
+; Hace jugar al jug1 con el jug2 2*nveces
+; y devuelve el porcentaje de veces que gana jug1
+(defun porcentaje (jug1 jug2 nveces)
+  (print (float (/ (+ (veces-gana jug1 jug2 nveces)
+         			  (- nveces (veces-gana jug2 jug1 nveces)))
+        		(* 2 nveces)))))
+
+; Devuelve el porcentaje de veces q jugador gana a nmx aleatoria
+; jugando 2*nveces
+(defun evaluador-porcentaje (jugador nveces)
+  (if (equal 0 (gana-regular jugador))
+    	(print 0)
+    (porcentaje jugador *jdr-nmx-eval-aleatoria* nveces)))
+
+
+(evaluador-porcentaje *blancamaria* 100)
 
 ;;; Ajustes para facilitar el seguimiento paso a paso (pag. 11). Reduzcase el nivel de
 ;;; detalle cuando se vaya adquiriendo práctica.
