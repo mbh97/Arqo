@@ -26,6 +26,6 @@ def main():
 			results += str(fl_res)
 			results += '\n\n'
 			outputFile.write(results)
-			print('\t\t Hemos conseguido uno de ' + str(fl_res))
+			print('\t\t Porcentaje de partidas ganadas ' + str(fl_res))
 
 main()

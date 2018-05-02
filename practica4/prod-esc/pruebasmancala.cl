@@ -977,28 +977,6 @@
                         :f-juego  #'f-j-nmx
                         :f-eval   #'(lambda (x) (heuristica x *ponderaciones*))))
 
-;(partida 1 2 (list *blancamaria* *jdr-nmx-Regular*))
-
-(defun suma (jug1 jug2 nveces)
-  (if (eq nveces 0)
-    0
-    (- (partida 0 2 (list jug1 jug2)) 
-    	(suma jug2 jug1 (- nveces 1)))))
-
-(defun media (jug1 jug2  nveces)
-  (print (float (/ (suma jug1 jug2 nveces) nveces))))
-
-(defun evaluador (jugador nveces)
-  (cond ((or 
-  		 (>= 0 (partida 0 2 (list jugador *jdr-nmx-Regular*))))
-         (>= 0 (partida 0 2 (list jugador *jdr-nmx-Bueno*)))
-         (<= 0 (partida 0 2 (list *jdr-nmx-Bueno* jugador)))
-         (<= 0 (partida 0 2 (list *jdr-nmx-Regular* jugador)))
- 		 (print '-1000))
-   		 (t (media jugador *jdr-nmx-eval-aleatoria* nveces))))
-
-;(evaluador *blancamaria* 100)
-
 
 (defun gana-regular(jugador)
   (if (and (< 0 (partida 0 2 (list jugador *jdr-nmx-Regular*)))
