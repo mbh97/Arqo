@@ -947,7 +947,7 @@
 ;;(partida 1 2 (list *jdr-nmx-Regular* *jdr-nmx-Regular*))
 ;;(partida 1 2 (list *jdr-aleatorio* *jdr-aleatorio*))
 
-(defvar *ponderaciones* '((0.2999055484142793 0.6053294954914216 0.9345803128378108 0.9455513873603285 0.7903977171315674 0.20317639647910124) (0.5351522928865313 0.22510994542123797 0.1582149488992568 0.3738972838499589 0.31664472074570116 0.34185555983974947)))
+(defvar *ponderaciones* '((0.3216200443812097 0.9424925041084766 0.8956374596684904 0.21616762781668653 0.6641089469726347 0.6426513579110769) (0.7404676016279249 0.0708468423117925 0.018699514774845105 0.46003516069403994 0.8759480066634406 0.4869291156265465)))
 
 (defun list-fichas (tablero lado n)
 	(let ((m (+ 1 n)))
@@ -1028,7 +1028,7 @@
     (porcentaje jugador *jdr-nmx-eval-aleatoria* nveces)))
 
 
-(evaluador-porcentaje *blancamaria* 100)
+(evaluador-porcentaje *blancamaria* 500)
 
 ;;; Ajustes para facilitar el seguimiento paso a paso (pag. 11). Reduzcase el nivel de
 ;;; detalle cuando se vaya adquiriendo práctica.

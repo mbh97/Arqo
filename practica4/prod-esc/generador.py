@@ -21,7 +21,7 @@ def main():
 		res = subprocess.run(['./script.sh', str(perm[0]), str(perm[1]), str(perm[2]),str(perm[3]), str(perm[4]), str(perm[5]),str(perm[6]), str(perm[7]), str(perm[8]),str(perm[9]), str(perm[10]), str(perm[11])], stdout=subprocess.PIPE)
 		fl_res = float(res.stdout.decode('utf-8'))
 		
-		if fl_res > 0.8:
+		if fl_res > 0.9:
 			results = args
 			results += str(fl_res)
 			results += '\n\n'

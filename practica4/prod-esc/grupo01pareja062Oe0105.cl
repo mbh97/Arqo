@@ -1,4 +1,4 @@
-; 0.905
+; (defvar *ponderaciones* '((0.9943945511339752 0.6263890230891831 0.5380591120147689 0.2153274661719341 0.19438387240613197 0.12717052751380753)(0.9093732518978621 0.23063666161064988 0.29291993181841924 0.7430791809741627 0.78060908695231 0.3579051175522805)))		0.91
 
 (defpackage :grupo01pareja062Oe0105 ; se declara un paquete lisp que usa common-lisp
   (:use :common-lisp :mancala)      ; y mancala, y exporta la función de evaluación
@@ -24,9 +24,9 @@
            (enLadoCont (lado-contrario (estado-lado-sgte-jugador estado)))
            (misfichas (list-fichas tablero enMilado 0))
            (susfichas (list-fichas tablero enLadoCont 0))
-           (ponderaciones (list '(0.4306030449046129 0.08998642188462813 0.5666120644988062 0.009500610871207238 0.02198043754615009 0.008441687180968938) '(0.8799851730674326 0.9514165565949416 0.2092788014890138 0.11476630614388128 0.23057248623046867 0.01747075728892067))))
+           (ponderaciones (list '(0.9943945511339752 0.6263890230891831 0.5380591120147689 0.2153274661719341 0.19438387240613197 0.12717052751380753) '(0.9093732518978621 0.23063666161064988 0.29291993181841924 0.7430791809741627 0.78060908695231 0.3579051175522805))))
            
            (+ (prod-esc-rec misfichas (first ponderaciones)) 
-           	  (prod-esc-rec misfichas (second ponderaciones)))))
+           	  (prod-esc-rec susfichas (second ponderaciones)))))
 
 (defvar *alias* '|MeRehusoADarteUnUltimoBeso|) ; alias que aparecerá en el ranking
