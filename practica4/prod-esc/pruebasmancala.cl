@@ -947,7 +947,7 @@
 ;;(partida 1 2 (list *jdr-nmx-Regular* *jdr-nmx-Regular*))
 ;;(partida 1 2 (list *jdr-aleatorio* *jdr-aleatorio*))
 
-(defvar *ponderaciones* '((0.3216200443812097 0.9424925041084766 0.8956374596684904 0.21616762781668653 0.6641089469726347 0.6426513579110769) (0.7404676016279249 0.0708468423117925 0.018699514774845105 0.46003516069403994 0.8759480066634406 0.4869291156265465)))
+(defvar *ponderaciones* '((0.27595261833683526 0.20574496497407158 0.48285744754751614 0.17978902134616004 0.00374268312508097 0.2525769687845656) (0.42141429432304844 0.45777420503498756 0.14223157080329252 0.07119365973691416 0.2755933023122571 0.4277745111225918)))
 
 (defun list-fichas (tablero lado n)
 	(let ((m (+ 1 n)))
@@ -1011,13 +1011,18 @@
 	(cond ((= nveces 0) 0)
 		  ((> (partida 0 2 (list jug1 jug2)) 0) (+ (veces-gana jug1 jug2 (- nveces 1)) 1))
 		  (t (veces-gana jug1 jug2 (- nveces 1)))))
+		  
+(defun veces-empata (jug1 jug2 nveces)
+	(cond ((= nveces 0) 0)
+		  ((= (partida 0 2 (list jug1 jug2)) 0) (+ (veces-empata jug1 jug2 (- nveces 1)) 1))
+		  (t (veces-empata jug1 jug2 (- nveces 1)))))
 
 ;JUGADOR 1 ERES TU
 ; Hace jugar al jug1 con el jug2 2*nveces
 ; y devuelve el porcentaje de veces que gana jug1
 (defun porcentaje (jug1 jug2 nveces)
   (print (float (/ (+ (veces-gana jug1 jug2 nveces)
-         			  (- nveces (veces-gana jug2 jug1 nveces)))
+         			  (- (- nveces (veces-gana jug2 jug1 nveces)) (veces-empata jug2 jug1 nveces)))
         		(* 2 nveces)))))
 
 ; Devuelve el porcentaje de veces q jugador gana a nmx aleatoria
